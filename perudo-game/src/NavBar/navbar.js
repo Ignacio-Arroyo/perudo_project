@@ -4,12 +4,15 @@ import Form from 'react-bootstrap/Form';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
+import './navbar.css';
+import { Link } from 'react-router-dom';
+
 
 function NavScrollExample() {
   return (
-    <Navbar expand="lg" className="bg-body-tertiary">
+    <Navbar expand="lg" className="bg-body-tertiary" data-bs-theme="dark">
       <Container fluid>
-        <Navbar.Brand href="#">Navbar scroll</Navbar.Brand>
+        <Navbar.Brand href="#">Perudo</Navbar.Brand>
         <Navbar.Toggle aria-controls="navbarScroll" />
         <Navbar.Collapse id="navbarScroll">
           <Nav
@@ -43,6 +46,9 @@ function NavScrollExample() {
             <Button variant="outline-success">Search</Button>
           </Form>
         </Navbar.Collapse>
+        <Link to='./Connexion'>
+          <Button variant="outline-success" id='connexion-button'>Connexion</Button>
+        </Link>
       </Container>
     </Navbar>
   );

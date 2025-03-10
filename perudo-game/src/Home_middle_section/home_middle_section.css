@@ -1,0 +1,33 @@
+html, body, .App {
+    height: 100%;
+    margin: 0;
+  }
+  
+  .home-middle-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 800px;
+    width: 100%;
+    background-image: url('../assets/boardgames_background.jpg');
+    background-size: cover; /* Ensure the image covers the entire element */
+    background-position: center; /* Center the image */
+  }
+
+  h1 {
+    color: red;
+    font-size: 3em;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .main-block{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 20px;
+    border-radius: 10px;
+  }
+  
