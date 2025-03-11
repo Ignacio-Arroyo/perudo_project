@@ -12,7 +12,7 @@ function NavScrollExample() {
   return (
     <Navbar expand="lg" className="bg-body-tertiary" data-bs-theme="dark">
       <Container fluid>
-        <Navbar.Brand href="#">Perudo</Navbar.Brand>
+        <Navbar.Brand href='../'>Perudo</Navbar.Brand>
         <Navbar.Toggle aria-controls="navbarScroll" />
         <Navbar.Collapse id="navbarScroll">
           <Nav
@@ -21,8 +21,8 @@ function NavScrollExample() {
             navbarScroll
           >
             <Nav.Link href="#action1">Home</Nav.Link>
-            <Nav.Link href="#action2">Link</Nav.Link>
-            <NavDropdown title="Link" id="navbarScrollingDropdown">
+            <Nav.Link href="#action2">Rules</Nav.Link>
+            {/* <NavDropdown title="Link" id="navbarScrollingDropdown">
               <NavDropdown.Item href="#action3">Action</NavDropdown.Item>
               <NavDropdown.Item href="#action4">
                 Another action
@@ -31,12 +31,12 @@ function NavScrollExample() {
               <NavDropdown.Item href="#action5">
                 Something else here
               </NavDropdown.Item>
-            </NavDropdown>
+            </NavDropdown> */}
             <Nav.Link href="#" disabled>
-              Link
+              Store
             </Nav.Link>
           </Nav>
-          <Form className="d-flex">
+          {/* <Form className="d-flex">
             <Form.Control
               type="search"
               placeholder="Search"
@@ -44,10 +44,13 @@ function NavScrollExample() {
               aria-label="Search"
             />
             <Button variant="outline-success">Search</Button>
-          </Form>
+          </Form> */}
         </Navbar.Collapse>
         <Link to='./Connexion'>
-          <Button variant="outline-success" id='connexion-button'>Connexion</Button>
+          <Button variant="outline-success" id='connexion-button'>Log In</Button>
+        </Link>
+        <Link to='./Register'>
+          <Button variant="outline-success" id='connexion-button'>Register</Button>
         </Link>
       </Container>
     </Navbar>
