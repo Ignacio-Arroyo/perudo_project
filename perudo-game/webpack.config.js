@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-  entry: './src/index.js', // Adjust the entry point as needed
+  entry: './src/index.js',
   output: {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist'),
@@ -12,8 +12,11 @@ module.exports = {
     compress: true,
     port: 9000,
     setupMiddlewares: (middlewares, devServer) => {
-        // If you have custom middlewares, add them here
-        return middlewares;
+      // If you have custom middlewares, add them here
+      // Example: middlewares.push({ name: 'custom-middleware', middleware: myMiddleware });
+
+      // Return the modified middlewares array
+      return middlewares;
     },
   },
   module: {

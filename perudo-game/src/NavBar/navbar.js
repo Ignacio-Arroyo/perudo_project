@@ -46,6 +46,9 @@ function NavScrollExample() {
             <Button variant="outline-success">Search</Button>
           </Form> */}
         </Navbar.Collapse>
+        <Link to='./Lobby'>
+          <Button variant="outline-success" id='lobby-button'>Play</Button>
+        </Link>
         <Link to='./Connexion'>
           <Button variant="outline-success" id='connexion-button'>Log In</Button>
         </Link>

@@ -1,0 +1,23 @@
+.lobby-form {
+    display: flex;
+    flex-direction: row; /* Changed to column to stack items vertically */
+    width: 90%; /* Ensure it takes the full width of the parent */
+    gap: 10px; /* Optional: Adds space between the items */
+    margin-top: auto;
+    justify-content: center;
+}
+
+.queue-text {
+    font-size: large;
+}
+
+.main-block {
+    width: 65%;
+}
+
+.lobby-form Form.Control, .queue-button, .queue-code {
+    width: 100px;
+    height: 50px;
+}
+ 
+
