@@ -1,0 +1,102 @@
+12-Feb-2025 08:13:31.951 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version name:   Apache Tomcat/11.0.1
+12-Feb-2025 08:13:31.960 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server built:          Nov 6 2024 19:08:24 UTC
+12-Feb-2025 08:13:31.961 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version number: 11.0.1.0
+12-Feb-2025 08:13:31.961 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Name:               Linux
+12-Feb-2025 08:13:31.962 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Version:            5.15.153.1-microsoft-standard-WSL2
+12-Feb-2025 08:13:31.962 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Architecture:          amd64
+12-Feb-2025 08:13:31.963 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Java Home:             /usr/lib/jvm/java-21-openjdk-amd64
+12-Feb-2025 08:13:31.963 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Version:           21.0.5+11-Ubuntu-1ubuntu124.04
+12-Feb-2025 08:13:31.964 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Vendor:            Ubuntu
+12-Feb-2025 08:13:31.964 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_BASE:         /mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1
+12-Feb-2025 08:13:31.965 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_HOME:         /mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1
+12-Feb-2025 08:13:31.990 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.config.file=/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/conf/logging.properties
+12-Feb-2025 08:13:31.991 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+12-Feb-2025 08:13:31.991 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djdk.tls.ephemeralDHKeySize=2048
+12-Feb-2025 08:13:31.992 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dorg.apache.catalina.security.SecurityListener.UMASK=0027
+12-Feb-2025 08:13:31.992 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.lang=ALL-UNNAMED
+12-Feb-2025 08:13:31.993 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.io=ALL-UNNAMED
+12-Feb-2025 08:13:31.993 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util=ALL-UNNAMED
+12-Feb-2025 08:13:31.994 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+12-Feb-2025 08:13:31.995 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED
+12-Feb-2025 08:13:31.995 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --enable-native-access=ALL-UNNAMED
+12-Feb-2025 08:13:31.996 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.base=/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1
+12-Feb-2025 08:13:31.996 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.home=/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1
+12-Feb-2025 08:13:31.997 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.io.tmpdir=/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/temp
+12-Feb-2025 08:13:32.004 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent The Apache Tomcat Native library which allows using OpenSSL was not found on the java.library.path: [/usr/java/packages/lib:/usr/lib/x86_64-linux-gnu/jni:/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/lib/jni:/lib:/usr/lib]
+12-Feb-2025 08:13:32.586 INFO [main] org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler ["http-nio-8080"]
+12-Feb-2025 08:13:32.634 INFO [main] org.apache.catalina.startup.Catalina.load Server initialization in [1171] milliseconds
+12-Feb-2025 08:13:32.749 INFO [main] org.apache.catalina.core.StandardService.startInternal Starting service [Catalina]
+12-Feb-2025 08:13:32.749 INFO [main] org.apache.catalina.core.StandardEngine.startInternal Starting Servlet engine: [Apache Tomcat/11.0.1]
+12-Feb-2025 08:13:32.836 INFO [main] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/hello.war]
+12-Feb-2025 08:13:32.931 INFO [main] org.apache.catalina.startup.ExpandWar.expand An expanded directory [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/hello] was found with a last modified time that did not match the associated WAR. It will be deleted.
+12-Feb-2025 08:13:34.942 INFO [main] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/hello.war] has finished in [2,104] ms
+12-Feb-2025 08:13:34.948 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deploying web application directory [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/docs]
+12-Feb-2025 08:13:35.581 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/docs] has finished in [633] ms
+12-Feb-2025 08:13:35.584 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deploying web application directory [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/examples]
+12-Feb-2025 08:13:44.288 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/examples] has finished in [8,705] ms
+12-Feb-2025 08:13:44.294 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deploying web application directory [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/host-manager]
+12-Feb-2025 08:13:45.106 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/host-manager] has finished in [812] ms
+12-Feb-2025 08:13:45.110 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deploying web application directory [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/manager]
+12-Feb-2025 08:13:46.235 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/manager] has finished in [1,125] ms
+12-Feb-2025 08:13:46.239 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deploying web application directory [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/ROOT]
+12-Feb-2025 08:13:46.877 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/ROOT] has finished in [637] ms
+12-Feb-2025 08:13:46.892 INFO [main] org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler ["http-nio-8080"]
+12-Feb-2025 08:13:46.922 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in [14823] milliseconds
+12-Feb-2025 08:21:47.488 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/template.war]
+12-Feb-2025 08:21:54.548 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/template.war] has finished in [7,060] ms
+12-Feb-2025 08:26:25.582 INFO [Catalina-utility-1] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war]
+12-Feb-2025 08:26:33.037 INFO [Catalina-utility-1] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war] has finished in [7,454] ms
+12-Feb-2025 08:42:30.226 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.undeploy Undeploying context [/annuaire]
+12-Feb-2025 08:42:30.995 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war]
+12-Feb-2025 08:42:38.312 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war] has finished in [7,317] ms
+12-Feb-2025 08:46:09.395 INFO [Catalina-utility-1] org.apache.catalina.startup.HostConfig.undeploy Undeploying context [/annuaire]
+12-Feb-2025 08:46:10.064 INFO [Catalina-utility-1] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war]
+12-Feb-2025 08:46:17.066 INFO [Catalina-utility-1] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war] has finished in [7,003] ms
+12-Feb-2025 08:47:47.029 INFO [Catalina-utility-1] org.apache.catalina.startup.HostConfig.undeploy Undeploying context [/annuaire]
+12-Feb-2025 08:47:47.690 INFO [Catalina-utility-1] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war]
+12-Feb-2025 08:47:53.717 INFO [Catalina-utility-1] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war] has finished in [6,026] ms
+12-Feb-2025 08:49:44.240 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.undeploy Undeploying context [/annuaire]
+12-Feb-2025 08:49:44.893 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war]
+12-Feb-2025 08:49:51.998 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war] has finished in [7,106] ms
+12-Feb-2025 08:51:51.789 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.undeploy Undeploying context [/annuaire]
+12-Feb-2025 08:51:52.435 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war]
+12-Feb-2025 08:51:59.192 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war] has finished in [6,757] ms
+12-Feb-2025 09:04:08.481 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.undeploy Undeploying context [/annuaire]
+12-Feb-2025 09:04:09.154 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war]
+12-Feb-2025 09:04:16.035 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war] has finished in [6,881] ms
+12-Feb-2025 09:11:24.959 INFO [Catalina-utility-1] org.apache.catalina.startup.HostConfig.undeploy Undeploying context [/annuaire]
+12-Feb-2025 09:11:25.601 INFO [Catalina-utility-1] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war]
+12-Feb-2025 09:11:32.388 INFO [Catalina-utility-1] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war] has finished in [6,787] ms
+12-Feb-2025 09:13:52.469 INFO [Catalina-utility-1] org.apache.catalina.startup.HostConfig.undeploy Undeploying context [/annuaire]
+12-Feb-2025 09:13:53.118 INFO [Catalina-utility-1] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war]
+12-Feb-2025 09:13:59.847 INFO [Catalina-utility-1] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war] has finished in [6,729] ms
+12-Feb-2025 09:14:59.241 INFO [Catalina-utility-1] org.apache.catalina.startup.HostConfig.undeploy Undeploying context [/annuaire]
+12-Feb-2025 09:14:59.954 INFO [Catalina-utility-1] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war]
+12-Feb-2025 09:15:06.788 INFO [Catalina-utility-1] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war] has finished in [6,834] ms
+12-Feb-2025 09:21:35.161 INFO [Catalina-utility-1] org.apache.catalina.startup.HostConfig.undeploy Undeploying context [/annuaire]
+12-Feb-2025 09:21:35.816 INFO [Catalina-utility-1] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war]
+12-Feb-2025 09:21:42.555 INFO [Catalina-utility-1] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war] has finished in [6,739] ms
+12-Feb-2025 09:24:42.635 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.undeploy Undeploying context [/annuaire]
+12-Feb-2025 09:24:43.276 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war]
+12-Feb-2025 09:24:49.296 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war] has finished in [6,019] ms
+12-Feb-2025 09:26:58.879 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.undeploy Undeploying context [/annuaire]
+12-Feb-2025 09:26:59.540 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war]
+12-Feb-2025 09:27:06.315 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war] has finished in [6,775] ms
+12-Feb-2025 09:29:35.471 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.undeploy Undeploying context [/annuaire]
+12-Feb-2025 09:29:36.196 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war]
+12-Feb-2025 09:29:42.803 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war] has finished in [6,607] ms
+12-Feb-2025 09:34:31.759 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.undeploy Undeploying context [/annuaire]
+12-Feb-2025 09:34:32.498 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war]
+12-Feb-2025 09:34:38.292 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war] has finished in [5,794] ms
+12-Feb-2025 09:41:06.807 INFO [Catalina-utility-1] org.apache.catalina.startup.HostConfig.undeploy Undeploying context [/annuaire]
+12-Feb-2025 09:41:07.677 INFO [Catalina-utility-1] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war]
+12-Feb-2025 09:41:14.792 INFO [Catalina-utility-1] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war] has finished in [7,116] ms
+12-Feb-2025 09:42:33.785 INFO [Catalina-utility-1] org.apache.catalina.startup.HostConfig.undeploy Undeploying context [/annuaire]
+12-Feb-2025 09:42:34.592 INFO [Catalina-utility-1] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war]
+12-Feb-2025 09:42:41.821 INFO [Catalina-utility-1] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war] has finished in [7,228] ms
+12-Feb-2025 09:50:48.516 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.undeploy Undeploying context [/annuaire]
+12-Feb-2025 09:50:49.249 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war]
+12-Feb-2025 09:50:55.315 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war] has finished in [6,065] ms
+12-Feb-2025 09:54:28.266 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.undeploy Undeploying context [/annuaire]
+12-Feb-2025 09:54:28.940 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war]
+12-Feb-2025 09:54:34.750 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp2-aw/apache-tomcat-11.0.1/webapps/annuaire.war] has finished in [5,810] ms

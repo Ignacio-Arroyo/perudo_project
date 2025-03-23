@@ -1,0 +1,18 @@
+<html> <head><title>Serv</title></head><body>
+    <h1>Enter a person</h1>
+    <form action= "Serv" method="post">
+    Number 1<input type="int" name="nb1"><br/>
+    Number 2<input type="int" name="nb2"><br/>
+   <input type="submit" name="op" value="Compute">
+    </form>
+   </body></html>
+
+<!-- Ajout pour la calculatrice avec formulaire -->
+<script>
+    document.querySelector('form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const nb1 = document.querySelector('input[name="nb1"]').value;
+        const nb2 = document.querySelector('input[name="nb2"]').value;
+        window.location.href = `Serv?nb1=${nb1}&nb2=${nb2}`;
+    });
+</script>

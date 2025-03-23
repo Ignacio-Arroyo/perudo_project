@@ -1,0 +1,59 @@
+26-Feb-2025 10:55:05.900 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version name:   Apache Tomcat/11.0.1
+26-Feb-2025 10:55:05.910 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server built:          Nov 6 2024 19:08:24 UTC
+26-Feb-2025 10:55:05.911 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version number: 11.0.1.0
+26-Feb-2025 10:55:05.912 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Name:               Linux
+26-Feb-2025 10:55:05.912 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Version:            5.15.153.1-microsoft-standard-WSL2
+26-Feb-2025 10:55:05.913 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Architecture:          amd64
+26-Feb-2025 10:55:05.914 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Java Home:             /usr/lib/jvm/java-21-openjdk-amd64
+26-Feb-2025 10:55:05.915 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Version:           21.0.6+7-Ubuntu-124.04.1
+26-Feb-2025 10:55:05.915 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Vendor:            Ubuntu
+26-Feb-2025 10:55:05.916 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_BASE:         /mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1
+26-Feb-2025 10:55:05.917 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_HOME:         /mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1
+26-Feb-2025 10:55:05.942 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.config.file=/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1/conf/logging.properties
+26-Feb-2025 10:55:05.943 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+26-Feb-2025 10:55:05.943 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djdk.tls.ephemeralDHKeySize=2048
+26-Feb-2025 10:55:05.944 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dorg.apache.catalina.security.SecurityListener.UMASK=0027
+26-Feb-2025 10:55:05.944 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.lang=ALL-UNNAMED
+26-Feb-2025 10:55:05.945 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.io=ALL-UNNAMED
+26-Feb-2025 10:55:05.946 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util=ALL-UNNAMED
+26-Feb-2025 10:55:05.946 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+26-Feb-2025 10:55:05.947 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED
+26-Feb-2025 10:55:05.947 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --enable-native-access=ALL-UNNAMED
+26-Feb-2025 10:55:05.948 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.base=/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1
+26-Feb-2025 10:55:05.948 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.home=/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1
+26-Feb-2025 10:55:05.949 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.io.tmpdir=/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1/temp
+26-Feb-2025 10:55:05.960 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent The Apache Tomcat Native library which allows using OpenSSL was not found on the java.library.path: [/usr/java/packages/lib:/usr/lib/x86_64-linux-gnu/jni:/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/lib/jni:/lib:/usr/lib]
+26-Feb-2025 10:55:06.538 INFO [main] org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler ["http-nio-8080"]
+26-Feb-2025 10:55:06.587 INFO [main] org.apache.catalina.startup.Catalina.load Server initialization in [1225] milliseconds
+26-Feb-2025 10:55:06.733 INFO [main] org.apache.catalina.core.StandardService.startInternal Starting service [Catalina]
+26-Feb-2025 10:55:06.734 INFO [main] org.apache.catalina.core.StandardEngine.startInternal Starting Servlet engine: [Apache Tomcat/11.0.1]
+26-Feb-2025 10:55:06.854 INFO [main] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1/webapps/annuaire-jpa.war]
+26-Feb-2025 10:55:06.961 INFO [main] org.apache.catalina.startup.ExpandWar.expand An expanded directory [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1/webapps/annuaire-jpa] was found with a last modified time that did not match the associated WAR. It will be deleted.
+26-Feb-2025 10:55:17.320 INFO [main] org.apache.jasper.servlet.TldScanner.scanJars At least one JAR was scanned for TLDs yet contained no TLDs. Enable debug logging for this logger for a complete list of JARs that were scanned but no TLDs were found in them. Skipping unneeded JARs during scanning can improve startup time and JSP compilation time.
+26-Feb-2025 10:55:17.498 INFO [main] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1/webapps/annuaire-jpa.war] has finished in [10,643] ms
+26-Feb-2025 10:55:17.538 INFO [main] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1/webapps/annuaire.war]
+26-Feb-2025 10:55:17.579 INFO [main] org.apache.catalina.startup.ExpandWar.expand An expanded directory [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1/webapps/annuaire] was found with a last modified time that did not match the associated WAR. It will be deleted.
+26-Feb-2025 10:55:25.107 INFO [main] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1/webapps/annuaire.war] has finished in [7,570] ms
+26-Feb-2025 10:55:25.210 INFO [main] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1/webapps/hello.war]
+26-Feb-2025 10:55:25.252 INFO [main] org.apache.catalina.startup.ExpandWar.expand An expanded directory [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1/webapps/hello] was found with a last modified time that did not match the associated WAR. It will be deleted.
+26-Feb-2025 10:55:26.383 INFO [main] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1/webapps/hello.war] has finished in [1,172] ms
+26-Feb-2025 10:55:26.423 INFO [main] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1/webapps/template.war]
+26-Feb-2025 10:55:26.464 INFO [main] org.apache.catalina.startup.ExpandWar.expand An expanded directory [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1/webapps/template] was found with a last modified time that did not match the associated WAR. It will be deleted.
+26-Feb-2025 10:55:33.487 INFO [main] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1/webapps/template.war] has finished in [7,064] ms
+26-Feb-2025 10:55:33.499 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deploying web application directory [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1/webapps/docs]
+26-Feb-2025 10:55:34.081 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1/webapps/docs] has finished in [583] ms
+26-Feb-2025 10:55:34.084 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deploying web application directory [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1/webapps/examples]
+26-Feb-2025 10:55:42.231 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1/webapps/examples] has finished in [8,147] ms
+26-Feb-2025 10:55:42.237 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deploying web application directory [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1/webapps/host-manager]
+26-Feb-2025 10:55:42.902 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1/webapps/host-manager] has finished in [664] ms
+26-Feb-2025 10:55:42.904 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deploying web application directory [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1/webapps/manager]
+26-Feb-2025 10:55:43.682 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1/webapps/manager] has finished in [777] ms
+26-Feb-2025 10:55:43.684 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deploying web application directory [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1/webapps/ROOT]
+26-Feb-2025 10:55:44.177 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory [/mnt/c/Users/nacho/Documents/N7/S8/AppWeb/TPs/tp3-aw/apache-tomcat-11.0.1/webapps/ROOT] has finished in [492] ms
+26-Feb-2025 10:55:44.192 INFO [main] org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler ["http-nio-8080"]
+26-Feb-2025 10:55:44.224 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in [37635] milliseconds
+26-Feb-2025 11:06:18.435 INFO [main] org.apache.catalina.core.StandardServer.await A valid shutdown command was received via the shutdown port. Stopping the Server instance.
+26-Feb-2025 11:06:18.437 INFO [main] org.apache.coyote.AbstractProtocol.pause Pausing ProtocolHandler ["http-nio-8080"]
+26-Feb-2025 11:06:18.442 INFO [main] org.apache.catalina.core.StandardService.stopInternal Stopping service [Catalina]
+26-Feb-2025 11:06:18.499 INFO [main] org.apache.coyote.AbstractProtocol.stop Stopping ProtocolHandler ["http-nio-8080"]
+26-Feb-2025 11:06:18.507 INFO [main] org.apache.coyote.AbstractProtocol.destroy Destroying ProtocolHandler ["http-nio-8080"]

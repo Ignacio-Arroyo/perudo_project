@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ajoutAdresse</title>
+</head>
+<body>
+    <form action="Serv" method="post">
+        <label for="rue">Rue</label>
+        <input type="text" name="rue" id="rue">
+        <label for="ville">Ville</label>
+        <input type="text" name="ville" id="ville">
+        <input type="submit" value="OK">
+        <input type="hidden" name="op" value="ajoutAdresse"> <!-- operation a effectuer car la Servlet ne peut pas savoir ce qu'il faut faire -->
+    </form>
+</body>
+</html>
