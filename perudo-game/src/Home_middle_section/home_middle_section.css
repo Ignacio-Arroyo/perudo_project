@@ -7,11 +7,12 @@ html, body, .App {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 800px;
+    height: 100vh;
     width: 100%;
     background-image: url('../assets/boardgames_background.jpg');
     background-size: cover; /* Ensure the image covers the entire element */
     background-position: center; /* Center the image */
+    padding: 2%;
   }
 
   h1 {
@@ -29,5 +30,84 @@ html, body, .App {
     background-color: rgba(255, 255, 255, 0.8);
     padding: 20px;
     border-radius: 10px;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 50%; 
+  
+  }
+
+  
+
+  
+  .title {
+    font-size: 3em;
+    color: #343a40;
+    margin-bottom: 20px;
+    font-family: 'Arial Black', sans-serif;
+  }
+  
+  .description {
+    font-size: 1.2em;
+    color: #495057;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+  
+  .game-image {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    
+  }
+  
+  .game-details {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .game-details div {
+    flex: 1;
+  }
+
+  .game-details, .fun-facts {
+    margin-bottom: 20px;
+  }
+  
+  .game-details h2, .fun-facts h2 {
+    font-size: 2em;
+    color: #007bff;
+    margin-bottom: 10px;
+  }
+  
+  .game-details ul, .fun-facts ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .game-details li, .fun-facts li {
+    font-size: 1.1em;
+    color: #495057;
+    margin-bottom: 5px;
+  }
+  
+  .play-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.2em;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: background-color 0.3s;
+  }
+  
+  .play-button:hover {
+    background-color: #0056b3;
   }
   

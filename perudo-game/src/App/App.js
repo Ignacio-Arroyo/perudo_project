@@ -38,7 +38,7 @@ function App() {
           <Route path="/lobby" element={<Lobby />} />
 
         </Routes>
-        <Footer />
+        <Footer  />
       </div>
     </Router>
   );
