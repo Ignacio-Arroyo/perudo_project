@@ -1,10 +1,13 @@
-package perudo_project.perudo;
+package perudo_backend.perudo_backend;
 
-
+import java.util.Collection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 
 @Entity
 public class Dice {
@@ -12,7 +15,7 @@ public class Dice {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 
-    int id;
+    int dice_id;
     String color;
     String face1;
     String face2;
@@ -21,12 +24,19 @@ public class Dice {
     String face5;
     String face6;
 
+    @ManyToOne
+    @JoinColumn(name = "store_id")
+    private Store store;
+
+    @ManyToMany(mappedBy = "ownedDice")
+    private Collection<Player> owners;
+
     public int getId(){
-        return id;
+        return dice_id;
     }
 
     public void setId(int id){
-        this.id = id;
+        this.dice_id = id;
     }
 
     public String getColor(){
