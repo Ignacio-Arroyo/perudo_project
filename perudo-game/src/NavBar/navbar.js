@@ -49,7 +49,7 @@ function NavScrollExample() {
         <Link to='./Lobby'>
           <Button variant="outline-success" id='lobby-button'>Play</Button>
         </Link>
-        <Link to='./Connexion'>
+        <Link to='./login'>
           <Button variant="outline-success" id='connexion-button'>Log In</Button>
         </Link>
         <Link to='./Register'>

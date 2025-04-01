@@ -1,78 +1,100 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Form from 'react-bootstrap/Form';
-import '../Home_middle_section/home_middle_section.css';
-import './login.css';
 import Button from 'react-bootstrap/Button';
+import './login.css';
 
 function Log_in() {
-  // On stocke les valeurs du form dans le state
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  
-  // Pour la navigation après login réussi
-  // const navigate = useNavigate();
+  // État local pour stocker les champs username et password
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
 
-  const handleLogin = async () => {
-    // Appel au backend
+  // État local pour afficher un message d'erreur ou de succès
+  const [message, setMessage] = useState('');
+
+  // Fonction de soumission du formulaire
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Empêche le rafraîchissement de la page
+
     try {
-      const response = await fetch('http://localhost:8080/api/auth/login', {
+      const response = await fetch('http://localhost:8080/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ 
+          username: username, 
+          password: password 
+        })
       });
-      
+
       if (response.ok) {
-        // OK
-        // const data = await response.json() ou response.text() selon ce que tu renvoies
-        // Par exemple:
-        // console.log("Success:", data);
-        // navigate("/lobby"); // Redirection vers le lobby
-        alert("Login success!");
+        // Connexion réussie
+        const data = await response.text(); 
+        // Par exemple, on peut stocker un token JWT,
+        // ou juste afficher un message
+        setMessage('Connexion réussie !');
+        console.log('Réponse du backend : ', data);
+        
+        // Vous pouvez rediriger ou stocker l’info en localStorage
+        // localStorage.setItem('token', data.token) // ex si data contenait un token
       } else {
-        // Erreur
-        // Tu peux récupérer le message d’erreur
+        // Erreur d’identifiants
         const errorText = await response.text();
-        console.error("Error:", errorText);
-        alert("Login failed");
+        setMessage('Échec de la connexion : ' + errorText);
       }
     } catch (error) {
-      console.error("Error:", error);
-      alert("Something went wrong");
+      console.error('Erreur réseau ou autre : ', error);
+      setMessage('Une erreur est survenue : ' + error.toString());
     }
-  }
+  };
 
   return (
     <div className='home-middle-section'>
       <div className='login-block'>
         <h1>Log in to Perudo Game Online Account</h1>
-        <Form>
-          <Form.Group className="mb-3" controlId="usernameInput">
-            <Form.Label>U0.
-            sername</Form.Label>
+        
+        {/* Affichage d'un message si nécessaire */}
+        {message && (
+          <div style={{ marginBottom: '10px', color: 'red' }}>
+            {message}
+          </div>
+        )}
+
+        <Form onSubmit={handleSubmit}>
+          <Form.Group className="mb-3" controlId="formUsername">
+            <Form.Label>Username</Form.Label>
             <Form.Control 
-              type="text" 
+              type="text"
               placeholder="Player1"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              required 
             />
           </Form.Group>
-          
-          <Form.Group className="mb-3" controlId="passwordInput">
+
+          <Form.Group className="mb-3" controlId="formPassword">
             <Form.Label>Password</Form.Label>
             <Form.Control 
               type="password" 
-              placeholder="********" 
+              placeholder="********"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required 
             />
           </Form.Group>
+
+          {/* 
+            Par défaut, un Button de type "submit" va déclencher handleSubmit 
+            défini sur la balise <Form onSubmit={handleSubmit}> 
+          */}
+          <Button 
+            variant="outline-success"
+            id='connexion-button'
+            type="submit"
+          >
+            Log In
+          </Button>
         </Form>
-        
-        <Button variant="outline-success" id='connexion-button' onClick={handleLogin}>
-          Log In
-        </Button>
       </div>
     </div>
   );
