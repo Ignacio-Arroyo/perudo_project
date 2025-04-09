@@ -6,6 +6,9 @@ import Home_middle_section from '../Home_middle_section/home_middle_section';
 import Connexion from '../Connexion/connexion';
 import Register from '../Register/register';
 import Lobby from '../Lobby/lobby';
+import Profile_page from '../Profile_page/profile_page';
+import Home from '../Home/home';
+import Leaderboard from '../Leaderboard/leaderboard';
 
 //copied from the restfull api example
 async function invokePost(method, data, successMsg, failureMsg, setMessage) {
@@ -36,6 +39,11 @@ function App() {
           <Route path="/connexion" element={<Connexion />} />
           <Route path="/register" element={<Register />} />
           <Route path="/lobby" element={<Lobby />} />
+          <Route path="/profile" element={<Profile_page />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
+          {/* <Route path="/statistics" element={<Statistics />} /> */}
+
 
         </Routes>
         <Footer  />

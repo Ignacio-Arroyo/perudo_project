@@ -25,6 +25,17 @@ public class Player {
     )
     private Collection<Dice> ownedDice;
 
+    public Player( String nom, String prenom, String username, String password) {
+        this.nom = nom;
+        this.prenom = prenom;
+        this.username = username;
+        this.password = password;
+    }
+
+    public Player() {
+    }
+    
+
     public int getId() {
         return player_id;
     }

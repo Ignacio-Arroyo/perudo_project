@@ -1,0 +1,44 @@
+.leaderboard-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .users-list {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .user-item {
+    padding: 1rem;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .user-item:last-child {
+    border-bottom: none;
+  }
+  
+  .user-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .user-details h2 {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+  
+  .user-details p {
+    margin: 0;
+    color: #777;
+  }
+  
+  .error-message {
+    color: red;
+    text-align: center;
+  }
+  

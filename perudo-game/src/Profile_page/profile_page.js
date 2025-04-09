@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import '../Home_middle_section/home_middle_section.css';
 import '../Connexion/login.css';
 import './register.css';
@@ -16,6 +17,7 @@ const Register = () => {
   });
 
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -63,17 +65,22 @@ const Register = () => {
         nom: formData.lastName,
         prenom: formData.firstName,
         password: formData.password
-      },{
+      }, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Basic ' + btoa('username:password')
-        }}
-      );
+        }
+      });
       console.log('Player created:', response.data);
-      // Optionally, reset the form or navigate to another page
+      // Redirect to the home page after successful registration
+      navigate('/home');
     } catch (error) {
       console.error('Error creating player:', error);
-      setError('An error occurred while creating the player.');
+      if (error.response && error.response.status === 409) {
+        setError('Username already exists. Please choose a different username.');
+      } else {
+        setError('An error occurred while creating the player.');
+      }
     }
   };
 
