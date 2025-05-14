@@ -8,7 +8,7 @@ const ProductList = () => {
     name: '',
     description: '',
     price: 0,
-    stock: 0
+    imgURL: '',
   });
 
   useEffect(() => {
@@ -35,7 +35,7 @@ const ProductList = () => {
       name: '',
       description: '',
       price: 0,
-      stock: 0
+      imgURL: '',
     });
   };
 
@@ -54,7 +54,7 @@ const ProductList = () => {
         <input type="text" name="name" placeholder="Name" value={newProduct.name} onChange={handleChange} />
         <input type="text" name="description" placeholder="Description" value={newProduct.description} onChange={handleChange} />
         <input type="number" name="price" placeholder="Price" value={newProduct.price} onChange={handleChange} />
-        <input type="number" name="stock" placeholder="Stock" value={newProduct.stock} onChange={handleChange} />
+        {/* <input type="number" name="stock" placeholder="Stock" value={newProduct.stock} onChange={handleChange} /> */}
         <button type="submit">Add Product</button>
       </form>
     </div>

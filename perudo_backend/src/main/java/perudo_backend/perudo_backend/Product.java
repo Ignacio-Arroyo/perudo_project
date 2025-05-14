@@ -13,7 +13,7 @@ public class Product {
     private String name;
     private String description;
     private double price;
-    private int stock;
+    private String img_url;
 
     // Getters and setters
     public Long getId() {
@@ -48,11 +48,12 @@ public class Product {
         this.price = price;
     }
 
-    public int getStock() {
-        return stock;
+    public String getImgUrl() {
+        return img_url;
     }
 
-    public void setStock(int stock) {
-        this.stock = stock;
+    public void setImgUrl(String img_url) {
+        this.img_url = img_url;
     }
+
 }
