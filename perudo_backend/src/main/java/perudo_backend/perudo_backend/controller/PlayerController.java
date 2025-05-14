@@ -9,11 +9,11 @@ import org.springframework.web.bind.annotation.*;
 
 import perudo_backend.perudo_backend.Player;
 import perudo_backend.perudo_backend.repositories.PlayerRepository;
+import perudo_backend.perudo_backend.LoginRequest;
+import perudo_backend.perudo_backend.services.PlayerService;
 
 import java.util.List;
 import java.util.Optional;
-
-
 
 @RestController
 @RequestMapping("/api/players")
@@ -22,8 +22,10 @@ public class PlayerController {
     @Autowired
     private PlayerRepository playerRepository;
 
-    private static final Logger logger = LoggerFactory.getLogger(PlayerController.class);
+    @Autowired
+    private PlayerService playerService;
 
+    private static final Logger logger = LoggerFactory.getLogger(PlayerController.class);
 
     @PostMapping
     public ResponseEntity<?> createPlayer(@RequestBody Player player) {
@@ -39,6 +41,26 @@ public class PlayerController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPlayer);
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<?> loginPlayer(@RequestBody LoginRequest loginRequest) {
+        Optional<Player> player = playerRepository.findByUsername(loginRequest.getUsername());
+        if (player.isPresent() && player.get().getPassword().equals(loginRequest.getPassword())) {
+            // Générer un token ou une session pour l'utilisateur si nécessaire
+            return ResponseEntity.ok(player.get());
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
+        }
+    }
+        
+
+    @GetMapping("/{playerId}")
+    public Player getPlayerProfile(@PathVariable int playerId) {
+        Player player = playerService.getPlayerById(playerId);
+        if (player != null) {
+            player.setPassword(null); // Ensure password is not sent
+        }
+        return player;
+    }
 
     // Get all Players
     @GetMapping
@@ -47,7 +69,7 @@ public class PlayerController {
     }
 
     // Get a Player by ID
-    @GetMapping("/{id}")
+    @PostMapping("/{id}")
     public ResponseEntity<Player> getPlayerById(@PathVariable int id) {
         Optional<Player> player = playerRepository.findById(id);
         return player.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
@@ -87,27 +109,4 @@ public class PlayerController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
     }
-
-/*     @GetMapping("/api/players/stats")
-    public ResponseEntity<?> getPlayerStats(@RequestParam String username) {
-        Optional<Player> player = playerRepository.findByUsername(username);
-        if (player.isPresent()) {
-            // Assuming you have a method to calculate stats
-            PlayerStats stats = calculatePlayerStats(player.get());
-            return ResponseEntity.ok(stats);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-        }
-    }
-
-    private PlayerStats calculatePlayerStats(Player player) {
-        // Implement your logic to calculate statistics
-        PlayerStats stats = new PlayerStats();
-        stats.setUsername(player.getUsername());
-        stats.setTotalGamesPlayed(10); // Example value
-        stats.setTotalWins(5); // Example value
-        stats.setWinRate(50.0); // Example value
-        return stats;
-    } */
-
 }

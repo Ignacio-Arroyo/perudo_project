@@ -12,6 +12,8 @@ public class Player {
     String prenom;
     String username;
     String password;
+    private String friendCode; // Code ami
+    private int winRate; // Taux de victoire
 
     @ManyToOne
     @JoinColumn(name = "game_id") // Foreign key column in the Player table
@@ -25,12 +27,27 @@ public class Player {
     )
     private Collection<Dice> ownedDice;
 
-    public Player( String nom, String prenom, String username, String password) {
+    @ManyToMany
+    @JoinTable(
+        name = "player_friends",
+        joinColumns = @JoinColumn(name = "player_id"),
+        inverseJoinColumns = @JoinColumn(name = "friend_id")
+    )
+    private Collection<Player> friends; // Liste d'amis
+
+    @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Collection<GameRecord> gameRecords; // Enregistrement des parties jouées
+
+
+    public Player(String nom, String prenom, String username, String password, String friendCode) {
         this.nom = nom;
         this.prenom = prenom;
         this.username = username;
         this.password = password;
+        this.friendCode = friendCode;
+        this.winRate = 0;
     }
+
 
     public Player() {
     }
@@ -91,4 +108,37 @@ public class Player {
     public void setDices(Collection<Dice> dices) {
         this.ownedDice = dices;
     }
+
+        // Ajoutez les getters et setters pour les nouveaux champs
+        public String getFriendCode() {
+            return friendCode;
+        }
+    
+        public void setFriendCode(String friendCode) {
+            this.friendCode = friendCode;
+        }
+    
+        public int getWinRate() {
+            return winRate;
+        }
+    
+        public void setWinRate(int winRate) {
+            this.winRate = winRate;
+        }
+    
+        public Collection<Player> getFriends() {
+            return friends;
+        }
+    
+        public void setFriends(Collection<Player> friends) {
+            this.friends = friends;
+        }
+    
+        public Collection<GameRecord> getGameRecords() {
+            return gameRecords;
+        }
+    
+        public void setGameRecords(Collection<GameRecord> gameRecords) {
+            this.gameRecords = gameRecords;
+        }
 }

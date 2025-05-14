@@ -4,7 +4,7 @@ import Button from 'react-bootstrap/Button';
 import axios from 'axios';
 import '../Home_middle_section/home_middle_section.css';
 import '../Connexion/login.css';
-import './register.css';
+
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -44,39 +44,53 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
+  
     const { password, confirmPassword } = formData;
-
+  
     if (!validatePassword(password)) {
       setError('Password does not meet the requirements.');
       return;
     }
-
+  
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
       return;
     }
-
+  
     try {
       const response = await axios.post('http://localhost:8080/api/players', {
         username: formData.username,
         nom: formData.lastName,
         prenom: formData.firstName,
         password: formData.password
-      },{
+      }, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Basic ' + btoa('username:password')
-        }}
-      );
-      console.log('Player created:', response.data);
-      // Optionally, reset the form or navigate to another page
+        }
+      });
+  
+      if (response.status === 200) {
+        console.log('Player created:', response.data);
+        // Optionally, reset the form or navigate to another page
+      }
     } catch (error) {
-      console.error('Error creating player:', error);
-      setError('An error occurred while creating the player.');
+      if (error.response) {
+        if (error.response.status === 409) {
+          setError('Username already exists. Please choose a different username.');
+        } else {
+          console.error('Error creating player:', error);
+          setError('An error occurred while creating the player.');
+        }
+      } else {
+        console.error('Error creating player:', error);
+        setError('An error occurred while creating the player.');
+      }
     }
   };
-
+  
+  
+  
   return (
     <div className='home-middle-section'>
       <div className='login-block'>

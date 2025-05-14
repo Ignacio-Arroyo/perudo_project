@@ -9,24 +9,8 @@ import Lobby from '../Lobby/lobby';
 import Profile_page from '../Profile_page/profile_page';
 import Home from '../Home/home';
 import Leaderboard from '../Leaderboard/leaderboard';
-
-//copied from the restfull api example
-async function invokePost(method, data, successMsg, failureMsg, setMessage) {
-  const requestOptions = {
-       method: "POST",
-       headers: { "Content-Type": "application/json; charset=utf-8" },
-       body: JSON.stringify(data)
-   };
-   const res = await fetch("perudo/"+method,requestOptions);
-   setMessage(res.ok ? successMsg : failureMsg);
-}
-//copied from the restfull api example
-async function invokeGet(method, failureMsg, setMessage) {
- const res = await fetch("perudo/"+method);
- if (res.ok) return await res.json();	
- setMessage(failureMsg);
- return null;
-}  
+import Shop from '../Shop/shop';
+import ProductList from '../ProductList/product_list';
 
 
 function App() {
@@ -39,9 +23,11 @@ function App() {
           <Route path="/connexion" element={<Connexion />} />
           <Route path="/register" element={<Register />} />
           <Route path="/lobby" element={<Lobby />} />
-          <Route path="/profile" element={<Profile_page />} />
+          <Route path="/profile" element={<Profile_page playerId={4} />} />
           <Route path="/home" element={<Home />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/shop" element={<Shop />} />
+          <ProductList />
           {/* <Route path="/statistics" element={<Statistics />} /> */}
 
 

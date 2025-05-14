@@ -1,28 +1,47 @@
+/* Ensure html and body take up the full height */
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+/* Main container should take up at least the full viewport height */
+.main-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Use viewport height to ensure it covers the full screen */
+}
+
+/* Main content should expand to push the footer down */
+.main-content {
+    flex: 1; /* This allows the main content to grow and push the footer down */
+}
+
+/* Footer styling */
 .footer {
     background-color: #333;
     color: white;
     text-align: center;
     padding: 1rem 0;
     width: 100%;
-    bottom: 0;
-  }
-  
-  .footer-content {
+}
+
+/* Footer content styling */
+.footer-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
     padding: 5px 20px;
-  }
-  
-  .footer-links a {
+}
+
+/* Footer links styling */
+.footer-links a {
     color: white;
     margin: 0 1rem;
     text-decoration: none;
     transition: color 0.3s;
-  }
-  
-  .footer-links a:hover {
+}
+
+.footer-links a:hover {
     color: #ddd;
-  }
-  
+}

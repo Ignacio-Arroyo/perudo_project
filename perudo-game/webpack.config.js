@@ -11,11 +11,23 @@ module.exports = {
     hot: true,
     compress: true,
     port: 9000,
-    setupMiddlewares: (middlewares, devServer) => {
-      // If you have custom middlewares, add them here
-      // Example: middlewares.push({ name: 'custom-middleware', middleware: myMiddleware });
+    setupMiddlewares: function (middlewares, devServer) {
+      if (!devServer) {
+        throw new Error('webpack-dev-server is not defined');
+      }
 
-      // Return the modified middlewares array
+      // Your setup code here for before middleware
+      middlewares.unshift({
+        name: 'before-middleware',
+        // middleware options
+      });
+
+      // Your setup code here for after middleware
+      middlewares.push({
+        name: 'after-middleware',
+        // middleware options
+      });
+
       return middlewares;
     },
   },
