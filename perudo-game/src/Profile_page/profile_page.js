@@ -1,42 +1,29 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React, { useContext } from 'react';
+import { UserContext } from '../Auth/UserContext';
 
-const Profile_page = ({ playerId }) => {
-    const [player, setPlayer] = useState(null);
+const Profile_page = () => {
+    const { user } = useContext(UserContext);
 
-    useEffect(() => {
-        const fetchPlayer = async () => {
-            try {
-                const response = await axios.get(`/api/players/${playerId}`);
-                setPlayer(response.data);
-            } catch (error) {
-                console.error('Error fetching player data:', error);
-            }
-        };
-
-        fetchPlayer();
-    }, [playerId]);
-
-    if (!player) {
+    if (!user) {
         return <div>Loading...</div>;
     }
 
     return (
         <div>
             <h1>Player Profile</h1>
-            <p>Name: {player.nom} {player.prenom}</p>
-            <p>Username: {player.username}</p>
-            <p>Friend Code: {player.friendCode}</p>
-            <p>Win Rate: {player.winRate}%</p>
+            <p>Name: {user.nom} {user.prenom}</p>
+            <p>Username: {user.username}</p>
+            <p>Friend Code: {user.friendCode}</p>
+            <p>Win Rate: {user.winRate}%</p>
             <h2>Friends</h2>
             <ul>
-                {player.friends && player.friends.map(friend => (
+                {user.friends && user.friends.map(friend => (
                     <li key={friend.player_id}>{friend.username}</li>
                 ))}
             </ul>
             <h2>Game Records</h2>
             <ul>
-                {player.gameRecords && player.gameRecords.map(record => (
+                {user.gameRecords && user.gameRecords.map(record => (
                     <li key={record.record_id}>
                         Victory: {record.victory ? 'Yes' : 'No'}, Score: {record.score}
                     </li>
@@ -44,7 +31,7 @@ const Profile_page = ({ playerId }) => {
             </ul>
             <h2>Inventory</h2>
             <ul>
-                {player.ownedDice && player.ownedDice.map(dice => (
+                {user.ownedDice && user.ownedDice.map(dice => (
                     <li key={dice.dice_id}>{dice.type}</li>
                 ))}
             </ul>

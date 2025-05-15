@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { UserContext } from '../Auth/UserContext';
 import '../Home_middle_section/home_middle_section.css';
 import '../Connexion/login.css';
 
@@ -14,6 +15,7 @@ const Login = () => {
 
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { login } = useContext(UserContext);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -39,10 +41,8 @@ const Login = () => {
 
       if (response.status === 200) {
         console.log('Login successful:', response.data);
-        // Stocker le token ou les informations de l'utilisateur si nécessaire
-        localStorage.setItem('user', JSON.stringify(response.data));
-        // Rediriger vers une autre page après la connexion
-        navigate('/home'); // Assurez-vous que cette route est définie dans votre application
+        login(response.data);
+        navigate('/home');
       }
     } catch (error) {
       if (error.response) {

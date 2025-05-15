@@ -1,18 +1,25 @@
+import React, { useContext } from 'react';
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
-import Form from 'react-bootstrap/Form';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
-import NavDropdown from 'react-bootstrap/NavDropdown';
+import { Link, useNavigate } from 'react-router-dom';
+import { UserContext } from '../Auth/UserContext';
 import './navbar.css';
-import { Link } from 'react-router-dom';
-
 
 function NavScrollExample() {
+  const { user, logout } = useContext(UserContext);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/connexion');
+  };
+
   return (
     <Navbar expand="lg" className="bg-body-tertiary" data-bs-theme="dark">
       <Container fluid>
-        <Navbar.Brand href='../'>Perudo</Navbar.Brand>
+        <Navbar.Brand href="/">Perudo</Navbar.Brand>
         <Navbar.Toggle aria-controls="navbarScroll" />
         <Navbar.Collapse id="navbarScroll">
           <Nav
@@ -20,41 +27,34 @@ function NavScrollExample() {
             style={{ maxHeight: '100px' }}
             navbarScroll
           >
-            <Nav.Link href="/home">Home</Nav.Link>
+            <Nav.Link as={Link} to="/home">Home</Nav.Link>
             <Nav.Link href="#action2">Rules</Nav.Link>
-            {/* <NavDropdown title="Link" id="navbarScrollingDropdown">
-              <NavDropdown.Item href="#action3">Action</NavDropdown.Item>
-              <NavDropdown.Item href="#action4">
-                Another action
-              </NavDropdown.Item>
-              <NavDropdown.Divider />
-              <NavDropdown.Item href="#action5">
-                Something else here
-              </NavDropdown.Item>
-            </NavDropdown> */}
-            {/* <Nav.Link href="#" disabled>
-              Store
-            </Nav.Link> */}
           </Nav>
-          {/* <Form className="d-flex">
-            <Form.Control
-              type="search"
-              placeholder="Search"
-              className="me-2"
-              aria-label="Search"
-            />
-            <Button variant="outline-success">Search</Button>
-          </Form> */}
         </Navbar.Collapse>
-        <Link to='./Lobby'>
-          <Button variant="outline-success" id='lobby-button'>Play</Button>
+
+        <Link to="/lobby">
+          <Button variant="outline-success" id="lobby-button">
+            Play
+          </Button>
         </Link>
-        <Link to='./Connexion'>
-          <Button variant="outline-success" id='connexion-button'>Log In</Button>
-        </Link>
-        <Link to='./Register'>
-          <Button variant="outline-success" id='connexion-button'>Register</Button>
-        </Link>
+        {user ? (
+          <Button variant="outline-success" id="logout-button" onClick={handleLogout}>
+            Log Out
+          </Button>
+        ) : (
+          <>
+            <Link to="/connexion">
+              <Button variant="outline-success" id="connexion-button">
+                Log In
+              </Button>
+            </Link>
+            <Link to="/register">
+              <Button variant="outline-success" id="register-button">
+                Register
+              </Button>
+            </Link>
+          </>
+        )}
       </Container>
     </Navbar>
   );

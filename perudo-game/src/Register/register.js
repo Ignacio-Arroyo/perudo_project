@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import '../Home_middle_section/home_middle_section.css';
 import '../Connexion/login.css';
-
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -16,6 +16,7 @@ const Register = () => {
   });
 
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -28,35 +29,34 @@ const Register = () => {
   const validatePassword = (password) => {
     const minLength = 1;
     /* const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumbers = /[0-9]/.test(password);
-    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password); */
-
-    return (
-      password.length >= minLength /* &&
-      hasUpperCase &&
-      hasLowerCase &&
-      hasNumbers &&
-      hasSpecial */
-    );
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password); */
+    return password.length >= minLength /* && hasUpperCase && hasNumber && hasSpecialChar */;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-  
-    const { password, confirmPassword } = formData;
-  
-    if (!validatePassword(password)) {
-      setError('Password does not meet the requirements.');
+
+    const { username, password, confirmPassword } = formData;
+
+    // Validate username
+    if (!username || username.trim().length < 1) {
+      setError('Username must contain at least one character.');
       return;
     }
-  
+
+    // Validate password
+    if (!validatePassword(password)) {
+      setError('Password must be at least 8 characters long, include one uppercase letter, one number, and one special character.');
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
       return;
     }
-  
+
     try {
       const response = await axios.post('http://localhost:8080/api/players', {
         username: formData.username,
@@ -69,10 +69,10 @@ const Register = () => {
           'Authorization': 'Basic ' + btoa('username:password')
         }
       });
-  
+
       if (response.status === 200) {
         console.log('Player created:', response.data);
-        // Optionally, reset the form or navigate to another page
+        navigate('/home');
       }
     } catch (error) {
       if (error.response) {
@@ -88,9 +88,7 @@ const Register = () => {
       }
     }
   };
-  
-  
-  
+
   return (
     <div className='home-middle-section'>
       <div className='login-block'>

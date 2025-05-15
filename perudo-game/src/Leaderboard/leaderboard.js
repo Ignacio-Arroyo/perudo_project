@@ -29,7 +29,7 @@ const Leaderboard = () => {
           <li key={user.player_id} className="user-item">
             <div className="user-details">
               <h2>{user.username}</h2>
-              <p>{user.nom} {user.prenom}</p>
+              <p>{user.friendCode} {user.nom} {user.prenom}</p>
             </div>
           </li>
         ))}

@@ -27,11 +27,20 @@ const Home = () => {
         <div className="block" onClick={() => handleNavigation('/friends')}>
           Friends
         </div>
+        <div className="block" onClick={() => handleNavigation('/mail')}>
+          Mailbox
+        </div>
         <div className="block" onClick={() => handleNavigation('/statistics')}>
           Statistics
         </div>
         <div className="block" onClick={() => handleNavigation('/match-history')}>
           Match History
+        </div>
+        <div className="block" onClick={() => handleNavigation('/home')}>
+          Home
+        </div>
+        <div className="block" onClick={() => handleNavigation('/products')}>
+          Add Products
         </div>
       </div>
     </div>

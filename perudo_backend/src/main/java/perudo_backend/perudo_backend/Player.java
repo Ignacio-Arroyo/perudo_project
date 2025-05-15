@@ -2,6 +2,7 @@ package perudo_backend.perudo_backend;
 
 import jakarta.persistence.*;
 import java.util.Collection;
+import java.util.Random;
 
 @Entity
 public class Player {
@@ -38,20 +39,36 @@ public class Player {
     @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true)
     private Collection<GameRecord> gameRecords; // Enregistrement des parties jouées
 
+    public Player() {
+        this.winRate = 0;
+    }
 
-    public Player(String nom, String prenom, String username, String password, String friendCode) {
+    public Player(String nom, String prenom, String username, String password) {
         this.nom = nom;
         this.prenom = prenom;
         this.username = username;
         this.password = password;
-        this.friendCode = friendCode;
+        this.friendCode = generateFriendCode(); // Générer le code ami automatiquement
         this.winRate = 0;
     }
 
-
-    public Player() {
+    @PrePersist
+    private void ensureFriendCode() {
+        if (this.friendCode == null || this.friendCode.isEmpty()) {
+            this.friendCode = generateFriendCode();
+        }
     }
-    
+
+    private String generateFriendCode() {
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder friendCode = new StringBuilder();
+        Random random = new Random();
+        for (int i = 0; i < 8; i++) {
+            int index = random.nextInt(characters.length());
+            friendCode.append(characters.charAt(index));
+        }
+        return friendCode.toString();
+    }
 
     public int getId() {
         return player_id;
@@ -109,36 +126,31 @@ public class Player {
         this.ownedDice = dices;
     }
 
-        // Ajoutez les getters et setters pour les nouveaux champs
-        public String getFriendCode() {
-            return friendCode;
-        }
-    
-        public void setFriendCode(String friendCode) {
-            this.friendCode = friendCode;
-        }
-    
-        public int getWinRate() {
-            return winRate;
-        }
-    
-        public void setWinRate(int winRate) {
-            this.winRate = winRate;
-        }
-    
-        public Collection<Player> getFriends() {
-            return friends;
-        }
-    
-        public void setFriends(Collection<Player> friends) {
-            this.friends = friends;
-        }
-    
-        public Collection<GameRecord> getGameRecords() {
-            return gameRecords;
-        }
-    
-        public void setGameRecords(Collection<GameRecord> gameRecords) {
-            this.gameRecords = gameRecords;
-        }
+    public String getFriendCode() {
+        return friendCode;
+    }
+
+    public int getWinRate() {
+        return winRate;
+    }
+
+    public void setWinRate(int winRate) {
+        this.winRate = winRate;
+    }
+
+    public Collection<Player> getFriends() {
+        return friends;
+    }
+
+    public void setFriends(Collection<Player> friends) {
+        this.friends = friends;
+    }
+
+    public Collection<GameRecord> getGameRecords() {
+        return gameRecords;
+    }
+
+    public void setGameRecords(Collection<GameRecord> gameRecords) {
+        this.gameRecords = gameRecords;
+    }
 }

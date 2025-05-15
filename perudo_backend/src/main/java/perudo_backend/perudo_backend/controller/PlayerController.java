@@ -37,7 +37,7 @@ public class PlayerController {
         }
 
         Player createdPlayer = playerRepository.save(player);
-        logger.info("Player created successfully: {}", createdPlayer.getUsername());
+        logger.info("Player created successfully: {} - {}", createdPlayer.getUsername(), createdPlayer.getFriendCode());
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPlayer);
     }
 
@@ -66,6 +66,13 @@ public class PlayerController {
     @GetMapping
     public List<Player> getAllPlayers() {
         return playerRepository.findAll();
+    }
+
+    // Get a Player by FriendCode
+    @GetMapping("/friendcode/{friendCode}")
+    public ResponseEntity<Player> getPlayerByFriendCode(@PathVariable String friendCode) {
+        Optional<Player> player = playerRepository.findByFriendCode(friendCode);
+        return player.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     // Get a Player by ID
