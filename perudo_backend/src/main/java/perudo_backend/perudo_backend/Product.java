@@ -12,7 +12,7 @@ public class Product {
     private Long id;
     private String name;
     private String description;
-    private double price;
+    private int price;
     private String img_url;
 
     // Getters and setters
@@ -40,11 +40,11 @@ public class Product {
         this.description = description;
     }
 
-    public double getPrice() {
+    public int getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(int price) {
         this.price = price;
     }
 

@@ -14,6 +14,7 @@ import perudo_backend.perudo_backend.services.PlayerService;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/players")
@@ -29,13 +30,13 @@ public class PlayerController {
 
     @PostMapping
     public ResponseEntity<?> createPlayer(@RequestBody Player player) {
+        logger.info("Attempting to create player: {}", player.toString());
         // Check if the username already exists
         Optional<Player> existingPlayer = playerRepository.findByUsername(player.getUsername());
         if (existingPlayer.isPresent()) {
             logger.warn("Attempt to create a player with an existing username: {}", player.getUsername());
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already exists");
         }
-
         Player createdPlayer = playerRepository.save(player);
         logger.info("Player created successfully: {}", createdPlayer.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPlayer);
@@ -108,5 +109,27 @@ public class PlayerController {
             logger.warn("Player not found with username: {}", username);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
+    }
+
+    // Récupérer l'inventaire du joueur
+    @GetMapping("/{playerId}/inventory")
+    public ResponseEntity<?> getInventory(@PathVariable int playerId) {
+        Player player = playerService.getPlayerById(playerId);
+        if (player == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(player.getDices());
+    }
+
+    // Acheter un dé
+    @PostMapping("/{playerId}/buy")
+    public ResponseEntity<?> buyProduct(@PathVariable int playerId, @RequestBody Map<String, Integer> body) {
+        int productId = body.get("productId");
+        return playerService.buyProduct(playerId, productId);
+    }
+
+    // Équiper un dé
+    @PostMapping("/{playerId}/equip")
+    public ResponseEntity<?> equipDice(@PathVariable int playerId, @RequestBody Map<String, Integer> body) {
+        int diceId = body.get("diceId");
+        return playerService.equipDice(playerId, diceId);
     }
 }

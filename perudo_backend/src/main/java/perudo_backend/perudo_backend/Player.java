@@ -2,6 +2,7 @@ package perudo_backend.perudo_backend;
 
 import jakarta.persistence.*;
 import java.util.Collection;
+import java.util.ArrayList;
 
 @Entity
 public class Player {
@@ -14,6 +15,8 @@ public class Player {
     String password;
     private String friendCode; // Code ami
     private int winRate; // Taux de victoire
+    private int pieces;
+    private int equippedProduct;
 
     @ManyToOne
     @JoinColumn(name = "game_id") // Foreign key column in the Player table
@@ -25,7 +28,7 @@ public class Player {
         joinColumns = @JoinColumn(name = "player_id"),
         inverseJoinColumns = @JoinColumn(name = "dice_id")
     )
-    private Collection<Dice> ownedDice;
+    private Collection<Dice> ownedDice = new ArrayList<>();
 
     @ManyToMany
     @JoinTable(
@@ -33,23 +36,59 @@ public class Player {
         joinColumns = @JoinColumn(name = "player_id"),
         inverseJoinColumns = @JoinColumn(name = "friend_id")
     )
-    private Collection<Player> friends; // Liste d'amis
+    private Collection<Player> friends = new ArrayList<>(); // Liste d'amis
 
     @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Collection<GameRecord> gameRecords; // Enregistrement des parties jouées
+    private Collection<GameRecord> gameRecords = new ArrayList<>(); // Enregistrement des parties jouées
 
+    @ManyToMany
+    @JoinTable(
+        name = "player_inventory",
+        joinColumns = @JoinColumn(name = "player_id"),
+        inverseJoinColumns = @JoinColumn(name = "product_id")
+    )
+    private Collection<Product> inventory = new ArrayList<>();
 
-    public Player(String nom, String prenom, String username, String password, String friendCode) {
+    public Player(String nom, String prenom, String username, String password, String friendCode, int pieces, int equippedProduct) {
         this.nom = nom;
         this.prenom = prenom;
         this.username = username;
         this.password = password;
-        this.friendCode = friendCode;
+        this.pieces = 0;
+        this.equippedProduct = 0;
         this.winRate = 0;
+        this.friendCode = "";
+    }
+ 
+    public Collection<Product> getInventory() {
+        return inventory;
     }
 
+    public void setInventory(Collection<Product> inventory) {
+        this.inventory = inventory;
+    }
+
+    public int getEquippedProduct() {
+        return equippedProduct;
+    }
+
+    public void setEquippedProduct(int equippedProduct) {
+        this.equippedProduct = equippedProduct;
+    }
+
+    public int getPieces() {
+        return pieces;
+    }
+
+    public void setPieces(int pieces) {
+        this.pieces = pieces;
+    }
 
     public Player() {
+        this.pieces = 0;
+        this.winRate = 0;
+        this.equippedProduct = 0;
+        this.friendCode = "";
     }
     
 
@@ -141,4 +180,24 @@ public class Player {
         public void setGameRecords(Collection<GameRecord> gameRecords) {
             this.gameRecords = gameRecords;
         }
+
+    @Override
+    public String toString() {
+        return "Player{" +
+                "player_id=" + player_id +
+                ", nom='" + nom + '\'' +
+                ", prenom='" + prenom + '\'' +
+                ", username='" + username + '\'' +
+                ", password='" + "[PROTECTED]" + '\'' + // Avoid logging password
+                ", friendCode='" + friendCode + '\'' +
+                ", winRate=" + winRate +
+                ", pieces=" + pieces +
+                ", equippedProduct=" + equippedProduct +
+                ", game=" + (game != null ? game.getId() : null) +
+                ", ownedDice_count=" + (ownedDice != null ? ownedDice.size() : 0) +
+                ", friends_count=" + (friends != null ? friends.size() : 0) +
+                ", gameRecords_count=" + (gameRecords != null ? gameRecords.size() : 0) +
+                ", inventory_count=" + (inventory != null ? inventory.size() : 0) +
+                '}';
+    }
 }
