@@ -30,4 +30,10 @@ public class FriendController {
     public void acceptFriendRequest(@RequestParam Long requestId) {
         friendService.acceptFriendRequest(requestId);
     }
+
+    @PostMapping("/reject")
+    public void rejectFriendRequest(@RequestParam Long requestId) {
+        friendService.rejectFriendRequest(requestId);
+    }
+
 }

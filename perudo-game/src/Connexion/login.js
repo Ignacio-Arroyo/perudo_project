@@ -40,8 +40,10 @@ const Login = () => {
       });
 
       if (response.status === 200) {
-        console.log('Login successful:', response.data);
-        login(response.data);
+        console.log('Login successful:', response.data); // Log the user data to verify that it includes the id
+        const userData = response.data;
+        userData.id = userData.player_id; // Ensure the id is included in the user object
+        login(userData);
         navigate('/home');
       }
     } catch (error) {

@@ -8,12 +8,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import perudo_backend.perudo_backend.Player;
+import perudo_backend.perudo_backend.dto.FriendDTO;
+import perudo_backend.perudo_backend.dto.PlayerDTO;
 import perudo_backend.perudo_backend.repositories.PlayerRepository;
 import perudo_backend.perudo_backend.LoginRequest;
 import perudo_backend.perudo_backend.services.PlayerService;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/players")
@@ -45,8 +48,14 @@ public class PlayerController {
     public ResponseEntity<?> loginPlayer(@RequestBody LoginRequest loginRequest) {
         Optional<Player> player = playerRepository.findByUsername(loginRequest.getUsername());
         if (player.isPresent() && player.get().getPassword().equals(loginRequest.getPassword())) {
-            // Générer un token ou une session pour l'utilisateur si nécessaire
-            return ResponseEntity.ok(player.get());
+            // Return the user data including the id
+            Player loggedInPlayer = player.get();
+            loggedInPlayer.setPassword(null); // Ensure password is not sent
+
+            // Log the user data being sent
+            logger.info("User data being sent: {}", loggedInPlayer);
+
+            return ResponseEntity.ok(new PlayerDTO(loggedInPlayer));
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
         }
@@ -62,11 +71,12 @@ public class PlayerController {
         return player;
     }
 
-    // Get all Players
     @GetMapping
-    public List<Player> getAllPlayers() {
-        return playerRepository.findAll();
+    public List<PlayerDTO> getAllPlayers() {
+        List<Player> players = playerRepository.findAll();
+        return players.stream().map(PlayerDTO::new).collect(Collectors.toList());
     }
+
 
     // Get a Player by FriendCode
     @GetMapping("/friendcode/{friendCode}")
@@ -115,5 +125,11 @@ public class PlayerController {
             logger.warn("Player not found with username: {}", username);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
+    }
+
+     @GetMapping("/{playerId}/friends")
+    public ResponseEntity<List<FriendDTO>> getFriendsByPlayerId(@PathVariable int playerId) {
+        List<FriendDTO> friends = playerService.getFriendsByPlayerId(playerId);
+        return ResponseEntity.ok(friends);
     }
 }

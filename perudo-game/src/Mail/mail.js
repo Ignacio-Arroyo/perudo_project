@@ -9,13 +9,19 @@ const MailPage = () => {
     useEffect(() => {
         const fetchFriendRequests = async () => {
             try {
-                console.log('User:', user); // Log the user object
-                if (!user || !user.player_id) {
-                    console.error('User or user.player_id is undefined');
+                console.log('User object:', user); // Log the user object to the console
+
+                if (!user) {
+                    console.error('User is undefined');
                     return;
                 }
 
-                const response = await axios.get(`/api/friends/requests/${user.player_id}`);
+                if (!user.id) {
+                    console.error('user.id is undefined');
+                    return;
+                }
+
+                const response = await axios.get(`/api/friends/requests/${user.id}`);
                 setFriendRequests(response.data);
             } catch (error) {
                 console.error('Error fetching friend requests:', error);
@@ -26,7 +32,6 @@ const MailPage = () => {
             fetchFriendRequests();
         }
     }, [user]);
-
 
     const handleAcceptFriendRequest = async (requestId) => {
         try {
@@ -41,6 +46,23 @@ const MailPage = () => {
         }
     };
 
+    const handleRejectFriendRequest = async (requestId) => {
+        try {
+            await axios.post('/api/friends/reject', null, {
+                params: {
+                    requestId: requestId
+                }
+            });
+            setFriendRequests(friendRequests.filter(request => request.id !== requestId));
+        } catch (error) {
+            console.error('Error rejecting friend request:', error);
+        }
+    };
+
+    if (!user) {
+        return <div>Please log in to view your friend requests.</div>;
+    }
+
     return (
         <div>
             <h1>Mail</h1>
@@ -51,6 +73,7 @@ const MailPage = () => {
                         <li key={request.id}>
                             {request.fromPlayer.username} wants to be your friend.
                             <button onClick={() => handleAcceptFriendRequest(request.id)}>Accept</button>
+                            <button onClick={() => handleRejectFriendRequest(request.id)}>Reject</button>
                         </li>
                     ))}
                 </ul>

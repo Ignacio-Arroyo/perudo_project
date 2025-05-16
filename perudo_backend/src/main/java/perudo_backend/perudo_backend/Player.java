@@ -52,6 +52,20 @@ public class Player {
         this.winRate = 0;
     }
 
+        // Player.java
+    @Override
+    public String toString() {
+        return "Player{" +
+                "player_id=" + player_id +
+                ", nom='" + nom + '\'' +
+                ", prenom='" + prenom + '\'' +
+                ", username='" + username + '\'' +
+                ", friendCode='" + friendCode + '\'' +
+                ", winRate=" + winRate +
+                '}';
+    }
+
+
     @PrePersist
     private void ensureFriendCode() {
         if (this.friendCode == null || this.friendCode.isEmpty()) {

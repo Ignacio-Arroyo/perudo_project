@@ -15,12 +15,12 @@ const Profile_page = () => {
             <p>Username: {user.username}</p>
             <p>Friend Code: {user.friendCode}</p>
             <p>Win Rate: {user.winRate}%</p>
-            <h2>Friends</h2>
+{/*             <h2>Friends</h2>
             <ul>
                 {user.friends && user.friends.map(friend => (
                     <li key={friend.player_id}>{friend.username}</li>
                 ))}
-            </ul>
+            </ul> */}
             <h2>Game Records</h2>
             <ul>
                 {user.gameRecords && user.gameRecords.map(record => (
@@ -40,3 +40,4 @@ const Profile_page = () => {
 };
 
 export default Profile_page;
+

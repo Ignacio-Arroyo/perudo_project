@@ -50,18 +50,51 @@ public class FriendService {
 
     @Transactional
     public void acceptFriendRequest(Long requestId) {
+        // Retrieve the friend request
         FriendRequest friendRequest = friendRequestRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Friend request not found"));
-        friendRequest.setStatus("accepted");
+        System.out.println("Friend request retrieved: " + friendRequest);
 
+        // Update the status of the friend request
+        friendRequest.setStatus("accepted");
+        System.out.println("Friend request status updated to: " + friendRequest.getStatus());
+
+        // Retrieve the players involved in the friend request
         Player fromPlayer = friendRequest.getFromPlayer();
         Player toPlayer = friendRequest.getToPlayer();
+        System.out.println("From player: " + fromPlayer.getUsername());
+        System.out.println("To player: " + toPlayer.getUsername());
 
+        // Add each player to the other's friends list
         fromPlayer.getFriends().add(toPlayer);
         toPlayer.getFriends().add(fromPlayer);
+        System.out.println("Friends added to each other's lists");
 
+        // Print the updated friends lists
+        System.out.println("From player's friends: " + fromPlayer.getFriends());
+        System.out.println("To player's friends: " + toPlayer.getFriends());
+
+        // Save the changes to the database
         playerRepository.save(fromPlayer);
         playerRepository.save(toPlayer);
         friendRequestRepository.save(friendRequest);
+        System.out.println("Changes saved to the database");
     }
+
+   @Transactional
+    public void rejectFriendRequest(Long requestId) {
+        // Retrieve the friend request
+        FriendRequest friendRequest = friendRequestRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Friend request not found"));
+        System.out.println("Friend request retrieved: " + friendRequest);
+
+        // Update the status of the friend request to "rejected"
+        friendRequest.setStatus("rejected");
+        System.out.println("Friend request status updated to: " + friendRequest.getStatus());
+
+        // Save the changes to the database
+        friendRequestRepository.save(friendRequest);
+        System.out.println("Changes saved to the database");
+    }
+
 }

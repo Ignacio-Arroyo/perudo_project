@@ -10,17 +10,17 @@ const FriendsPage = () => {
 
     useEffect(() => {
         const fetchFriends = async () => {
-            try {
-                const response = await axios.get(`/api/players/${user.player_id}/friends`);
-                setFriends(response.data);
-            } catch (error) {
-                console.error('Error fetching friends:', error);
+            if (user && user.id) {
+                try {
+                    const response = await axios.get(`/api/players/${user.id}/friends`);
+                    setFriends(response.data);
+                } catch (error) {
+                    console.error('Error fetching friends:', error);
+                }
             }
         };
 
-        if (user) {
-            fetchFriends();
-        }
+        fetchFriends();
     }, [user]);
 
     const handleSendFriendRequest = async () => {
@@ -42,6 +42,10 @@ const FriendsPage = () => {
         }
     };
 
+    if (!user) {
+        return <div>Please log in to view your friends.</div>;
+    }
+
     return (
         <div>
             <h1>Friends</h1>
@@ -59,9 +63,13 @@ const FriendsPage = () => {
             <div>
                 <h2>Your Friends</h2>
                 <ul>
-                    {friends.map(friend => (
-                        <li key={friend.player_id}>{friend.username}</li>
-                    ))}
+                    {friends.length > 0 ? (
+                        friends.map(friend => (
+                            <li key={friend.player_id}>{friend.username}</li>
+                        ))
+                    ) : (
+                        <p>No friends yet.</p>
+                    )}
                 </ul>
             </div>
         </div>
