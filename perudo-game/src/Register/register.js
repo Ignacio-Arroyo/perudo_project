@@ -4,7 +4,8 @@ import Button from 'react-bootstrap/Button';
 import axios from 'axios';
 import '../Home_middle_section/home_middle_section.css';
 import '../Connexion/login.css';
-
+import { useAuth } from '../Auth/authcontext';
+import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -16,6 +17,8 @@ const Register = () => {
   });
 
   const [error, setError] = useState('');
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -62,7 +65,11 @@ const Register = () => {
         username: formData.username,
         nom: formData.lastName,
         prenom: formData.firstName,
-        password: formData.password
+        password: formData.password,
+        pieces: 0,
+        equippedProduct: 0,
+        winRate: 0,
+        friendCode: ""
       }, {
         headers: {
           'Content-Type': 'application/json',
@@ -72,7 +79,10 @@ const Register = () => {
   
       if (response.status === 200) {
         console.log('Player created:', response.data);
-        // Optionally, reset the form or navigate to another page
+        // Mettre à jour l'état d'authentification
+        login();
+        // Rediriger vers la page d'accueil
+        navigate('/home');
       }
     } catch (error) {
       if (error.response) {

@@ -1,0 +1,39 @@
+.inventory {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    justify-content: center;
+    padding: 20px;
+}
+
+.inventory-card {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 16px;
+    width: 200px;
+    text-align: center;
+    background: #fafafa;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.inventory-card img {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    margin-bottom: 10px;
+}
+
+.inventory-card .equip-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 8px;
+}
+
+.inventory-card .equip-btn.equipped {
+    background-color: #28a745;
+}
+                    

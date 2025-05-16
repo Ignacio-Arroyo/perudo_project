@@ -11,30 +11,37 @@ import Home from '../Home/home';
 import Leaderboard from '../Leaderboard/leaderboard';
 import Shop from '../Shop/shop';
 import ProductList from '../ProductList/product_list';
+import { AuthProvider } from '../Auth/authcontext';
+import TestCoins from './TestCoins';
+import UpdatePlayerCoinsPage from './UpdatePlayerCoinsPage';
 
 
 function App() {
   return (
-    <Router>
-      <div className="App">
-        <Navbar sticky="top" />
-        <Routes>
-          <Route path="/" element={<Home_middle_section />} />
-          <Route path="/connexion" element={<Connexion />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/lobby" element={<Lobby />} />
-          <Route path="/profile" element={<Profile_page playerId={4} />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/shop" element={<Shop />} />
-          <Route path="/products" element={<ProductList />} />
-          {/* <Route path="/statistics" element={<Statistics />} /> */}
+    <AuthProvider>
+      <Router>
+        <div className="App">
+          <Navbar sticky="top" />
+          <Routes>
+            <Route path="/" element={<Home_middle_section />} />
+            <Route path="/connexion" element={<Connexion />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/lobby" element={<Lobby />} />
+            <Route path="/profile" element={<Profile_page playerId={4} />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/products" element={<ProductList />} />
+            <Route path="/test-coins" element={<TestCoins />} />
+            <Route path="/update-player-coins" element={<UpdatePlayerCoinsPage />} />
+            {/* <Route path="/statistics" element={<Statistics />} /> */}
 
 
-        </Routes>
-        <Footer  />
-      </div>
-    </Router>
+          </Routes>
+          <Footer  />
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 

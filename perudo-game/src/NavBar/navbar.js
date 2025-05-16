@@ -5,10 +5,19 @@ import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import './navbar.css';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../Auth/authcontext';
 
 
 function NavScrollExample() {
+  const { isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
   return (
     <Navbar expand="lg" className="bg-body-tertiary" data-bs-theme="dark">
       <Container fluid>
@@ -49,12 +58,18 @@ function NavScrollExample() {
         <Link to='./Lobby'>
           <Button variant="outline-success" id='lobby-button'>Play</Button>
         </Link>
-        <Link to='./Connexion'>
-          <Button variant="outline-success" id='connexion-button'>Log In</Button>
-        </Link>
-        <Link to='./Register'>
-          <Button variant="outline-success" id='connexion-button'>Register</Button>
-        </Link>
+        {isAuthenticated ? (
+          <Button variant="outline-danger" id='logout-button' onClick={handleLogout}>Logout</Button>
+        ) : (
+          <>
+            <Link to='./Connexion'>
+              <Button variant="outline-success" id='connexion-button'>Log In</Button>
+            </Link>
+            <Link to='./Register'>
+              <Button variant="outline-success" id='connexion-button'>Register</Button>
+            </Link>
+          </>
+        )}
       </Container>
     </Navbar>
   );
