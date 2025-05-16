@@ -54,7 +54,7 @@ public class Player {
         this.prenom = prenom;
         this.username = username;
         this.password = password;
-        this.pieces = 0;
+        this.pieces = 20000;
         this.equippedProduct = 0;
         this.winRate = 0;
         this.friendCode = "";
@@ -85,7 +85,7 @@ public class Player {
     }
 
     public Player() {
-        this.pieces = 0;
+        this.pieces = 2000;
         this.winRate = 0;
         this.equippedProduct = 0;
         this.friendCode = "";

@@ -132,4 +132,23 @@ public class PlayerController {
         int diceId = body.get("diceId");
         return playerService.equipDice(playerId, diceId);
     }
+    
+    // Ajouter des pièces à un joueur spécifique (pour les tests)
+    @PutMapping("/update-coins/{username}")
+    public ResponseEntity<?> updatePlayerCoins(@PathVariable String username, @RequestBody Map<String, Integer> body) {
+        logger.info("Updating coins for player with username: {}", username);
+        int coins = body.get("coins");
+        
+        Optional<Player> playerOpt = playerRepository.findByUsername(username);
+        if (playerOpt.isPresent()) {
+            Player player = playerOpt.get();
+            player.setPieces(coins);
+            playerRepository.save(player);
+            logger.info("Updated coins for player {}: new amount {}", username, coins);
+            return ResponseEntity.ok().body(Map.of("message", "Coins updated successfully", "player", player));
+        } else {
+            logger.warn("Player not found with username: {}", username);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Player not found");
+        }
+    }
 }
