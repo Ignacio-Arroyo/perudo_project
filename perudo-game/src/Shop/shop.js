@@ -1,64 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import './shop.css';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
-// Liste des skins de dés codée en dur
-const products = [
-  {
-    id: 1,
-    name: 'Dé Bois',
-    price: 200,
-    image: require('../assets/woodensetdice.png'),
-  },
-  {
-    id: 2,
-    name: 'Dé Rouge',
-    price: 250,
-    image: require('../assets/redsetdice.png'),
-  },
-  {
-    id: 3,
-    name: 'Dé Orange',
-    price: 250,
-    image: require('../assets/orangesetdice.png'),
-  },
-  {
-    id: 4,
-    name: 'Dé Multicolore',
-    price: 350,
-    image: require('../assets/multicolorsetdice.png'),
-  },
-  {
-    id: 5,
-    name: 'Dé Gris/Noir',
-    price: 220,
-    image: require('../assets/grey-blacksetdice.jpg'),
-  },
-  {
-    id: 6,
-    name: 'Dé Vert',
-    price: 230,
-    image: require('../assets/greensetdice.png'),
-  },
-  {
-    id: 7,
-    name: 'Dé Bleu Clair',
-    price: 240,
-    image: require('../assets/clearbluesetdice.png'),
-  },
-  {
-    id: 8,
-    name: 'Dé Bleu',
-    price: 240,
-    image: require('../assets/bluesetdice.png'),
-  },
-  {
-    id: 9,
-    name: 'Dé Noir',
-    price: 260,
-    image: require('../assets/blacksetdice.png'),
-  },
-];
+// Images pour les produits
+const productImages = {
+  1: require('../assets/woodensetdice.png'),
+  2: require('../assets/redsetdice.png'),
+  3: require('../assets/orangesetdice.png'),
+  4: require('../assets/multicolorsetdice.png'),
+  5: require('../assets/grey-blacksetdice.jpg'),
+  6: require('../assets/greensetdice.png'),
+  7: require('../assets/clearbluesetdice.png'),
+  8: require('../assets/bluesetdice.png'),
+  9: require('../assets/blacksetdice.png'),
+};
 
 const Shop = () => {
   const [playerId, setPlayerId] = useState(null);
@@ -69,19 +25,22 @@ const Shop = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [buyLoading, setBuyLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [products, setProducts] = useState([]);
 
-  // Vérifier si les produits existent dans la base de données
+  // Récupérer les produits depuis le backend
   useEffect(() => {
-    const checkProducts = async () => {
+    const fetchProducts = async () => {
       try {
-        const response = await axios.get(`http://localhost:8080/api/products`);
+        const response = await axios.get('http://localhost:8080/api/products');
         console.log("Produits disponibles:", response.data);
+        setProducts(response.data);
       } catch (err) {
-        console.error("Erreur lors de la vérification des produits:", err);
+        console.error("Erreur lors de la récupération des produits:", err);
+        setError("Impossible de récupérer les produits du shop.");
       }
     };
     
-    checkProducts();
+    fetchProducts();
   }, []);
 
   useEffect(() => {
@@ -199,7 +158,7 @@ const Shop = () => {
           localStorage.setItem('user', JSON.stringify(user));
         }
         
-        setMessage({ type: 'success', text: "Achat réussi !" });
+        setMessage({ type: 'success', text: "Achat réussi ! Rendez-vous dans votre inventaire pour équiper votre nouveau dé." });
       }
     } catch (err) {
       console.error('Erreur lors de l\'achat:', err);
@@ -272,10 +231,18 @@ const Shop = () => {
         </div>
       )}
       
+      {isAuthenticated && (
+        <div style={{marginBottom: '20px'}}>
+          <Link to="/inventory" className="inventory-link">
+            Voir mon inventaire
+          </Link>
+        </div>
+      )}
+      
       <div className="products">
         {products.map((product) => (
           <div className="product-card" key={product.id}>
-            <img src={product.image} alt={product.name} style={{ width: '120px', height: '120px', objectFit: 'contain' }} />
+            <img src={productImages[product.id] || 'placeholder.png'} alt={product.name} style={{ width: '120px', height: '120px', objectFit: 'contain' }} />
             <h2>{product.name}</h2>
             <p className="price">{product.price} pièces</p>
             <button 

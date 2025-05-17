@@ -1,10 +1,15 @@
 package perudo_backend.perudo_backend.services;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import perudo_backend.perudo_backend.Player;
+import perudo_backend.perudo_backend.dto.FriendDTO;
 import perudo_backend.perudo_backend.Product;
 import perudo_backend.perudo_backend.repositories.PlayerRepository;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +29,16 @@ public class PlayerService {
 
     public Player getPlayerById(int playerId) {
         return playerRepository.findById(playerId).orElse(null);
+    }
+
+    public List<FriendDTO> getFriendsByPlayerId(int playerId) {
+        Player player = playerRepository.findById(playerId).orElse(null);
+        if (player != null) {
+            return player.getFriends().stream()
+                    .map(FriendDTO::new)
+                    .collect(Collectors.toList());
+        }
+        return List.of(); // Return an empty list if the player is not found
     }
 
     public ResponseEntity<?> buyProduct(int playerId, int productId) {
@@ -49,9 +64,17 @@ public class PlayerService {
         }
         
         try {
+            // Vérifier si le joueur possède déjà ce produit
+            boolean alreadyOwns = player.getInventory().stream()
+                .anyMatch(p -> p.getId().equals(product.getId()));
+                
+            if (alreadyOwns) {
+                logger.info("Le joueur {} possède déjà le produit {}", playerId, productId);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Vous possédez déjà ce produit");
+            }
+            
             // Mettre à jour les pièces du joueur
             player.setPieces(player.getPieces() - product.getPrice());
-            playerRepository.save(player);
             
             // Ajouter le produit à l'inventaire
             player.getInventory().add(product);
@@ -65,8 +88,43 @@ public class PlayerService {
         }
     }
 
-    public ResponseEntity<?> equipDice(int playerId, int diceId) {
-        // TODO: Logique pour équiper un dé
-        return ResponseEntity.ok("Dé équipé (squelette)");
+    public ResponseEntity<?> equipDice(int playerId, int productId) {
+        logger.info("Tentative d'équipement du produit {} par le joueur {}", productId, playerId);
+        
+        Player player = getPlayerById(playerId);
+        if (player == null) {
+            logger.warn("Joueur {} non trouvé", playerId);
+            return ResponseEntity.notFound().build();
+        }
+        
+        Product product = productRepository.findById((long)productId).orElse(null);
+        if (product == null) {
+            logger.warn("Produit {} non trouvé", productId);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Le produit n'existe pas");
+        }
+        
+        // Vérifier si le joueur possède le produit
+        boolean ownsProduct = player.getInventory().stream()
+                .anyMatch(p -> p.getId().equals(product.getId()));
+                
+        if (!ownsProduct) {
+            logger.warn("Le joueur {} ne possède pas le produit {}", playerId, productId);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Vous ne possédez pas ce produit");
+        }
+        
+        try {
+            // Équiper le produit
+            player.setEquippedProduct(productId);
+            playerRepository.save(player);
+            
+            logger.info("Équipement réussi: Joueur {} a équipé le produit {}", playerId, productId);
+            return ResponseEntity.ok().body(Map.of(
+                "message", "Produit équipé avec succès",
+                "equippedProduct", productId
+            ));
+        } catch (Exception e) {
+            logger.error("Erreur lors de l'équipement du produit {} par le joueur {}: {}", productId, playerId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur lors de l'équipement: " + e.getMessage());
+        }
     }
 }

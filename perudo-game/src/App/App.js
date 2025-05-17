@@ -10,7 +10,10 @@ import Profile_page from '../Profile_page/profile_page';
 import Home from '../Home/home';
 import Leaderboard from '../Leaderboard/leaderboard';
 import Shop from '../Shop/shop';
+import FriendsPage from '../Friend_page/friend_page';
+import MailPage from '../Mail/mail';
 import ProductList from '../ProductList/product_list';
+import Inventory from '../Inventory/Inventory';
 import { AuthProvider } from '../Auth/authcontext';
 import TestCoins from './TestCoins';
 import UpdatePlayerCoinsPage from './UpdatePlayerCoinsPage';
@@ -27,11 +30,12 @@ function App() {
             <Route path="/connexion" element={<Connexion />} />
             <Route path="/register" element={<Register />} />
             <Route path="/lobby" element={<Lobby />} />
-            <Route path="/profile" element={<Profile_page playerId={4} />} />
+            <Route path="/profile" element={<Profile_page />} />
             <Route path="/home" element={<Home />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/products" element={<ProductList />} />
+            <Route path="/inventory" element={<Inventory />} />
             <Route path="/test-coins" element={<TestCoins />} />
             <Route path="/update-player-coins" element={<UpdatePlayerCoinsPage />} />
             {/* <Route path="/statistics" element={<Statistics />} /> */}

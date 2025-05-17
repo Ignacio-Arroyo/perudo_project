@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { UserContext } from '../Auth/UserContext';
 import '../Home_middle_section/home_middle_section.css';
 import '../Connexion/login.css';
 import { useAuth } from '../Auth/authcontext';

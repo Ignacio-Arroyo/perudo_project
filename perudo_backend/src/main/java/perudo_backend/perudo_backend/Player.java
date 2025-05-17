@@ -2,6 +2,7 @@ package perudo_backend.perudo_backend;
 
 import jakarta.persistence.*;
 import java.util.Collection;
+import java.util.Random;
 import java.util.ArrayList;
 
 @Entity
@@ -17,6 +18,7 @@ public class Player {
     private int winRate; // Taux de victoire
     private int pieces;
     private int equippedProduct;
+    private int trophies; // Nombre de trophées
 
     @ManyToOne
     @JoinColumn(name = "game_id") // Foreign key column in the Player table
@@ -49,15 +51,54 @@ public class Player {
     )
     private Collection<Product> inventory = new ArrayList<>();
 
+    public Player() {
+        this.pieces = 2000;
+        this.winRate = 0;
+        this.equippedProduct = 0;
+        this.friendCode = "";
+        this.trophies = 0;
+    }
+
+    public Player(String nom, String prenom, String username, String password) {
+        this.nom = nom;
+        this.prenom = prenom;
+        this.username = username;
+        this.password = password;
+        this.friendCode = generateFriendCode();
+        this.pieces = 2000;
+        this.equippedProduct = 0;
+        this.winRate = 0;
+        this.trophies = 0;
+    }
+
     public Player(String nom, String prenom, String username, String password, String friendCode, int pieces, int equippedProduct) {
         this.nom = nom;
         this.prenom = prenom;
         this.username = username;
         this.password = password;
-        this.pieces = 20000;
-        this.equippedProduct = 0;
+        this.friendCode = friendCode;
+        this.pieces = pieces;
+        this.equippedProduct = equippedProduct;
         this.winRate = 0;
-        this.friendCode = "";
+        this.trophies = 0;
+    }
+
+    @PrePersist
+    private void ensureFriendCode() {
+        if (this.friendCode == null || this.friendCode.isEmpty()) {
+            this.friendCode = generateFriendCode();
+        }
+    }
+
+    private String generateFriendCode() {
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder friendCode = new StringBuilder();
+        Random random = new Random();
+        for (int i = 0; i < 8; i++) {
+            int index = random.nextInt(characters.length());
+            friendCode.append(characters.charAt(index));
+        }
+        return friendCode.toString();
     }
  
     public Collection<Product> getInventory() {
@@ -83,14 +124,6 @@ public class Player {
     public void setPieces(int pieces) {
         this.pieces = pieces;
     }
-
-    public Player() {
-        this.pieces = 2000;
-        this.winRate = 0;
-        this.equippedProduct = 0;
-        this.friendCode = "";
-    }
-    
 
     public int getId() {
         return player_id;
@@ -148,38 +181,52 @@ public class Player {
         this.ownedDice = dices;
     }
 
-        // Ajoutez les getters et setters pour les nouveaux champs
-        public String getFriendCode() {
-            return friendCode;
+    public String getFriendCode() {
+        return friendCode;
+    }
+
+    public void setFriendCode(String friendCode) {
+        this.friendCode = friendCode;
+    }
+
+    public int getWinRate() {
+        return winRate;
+    }
+
+    public void setWinRate(int winRate) {
+        this.winRate = winRate;
+    }
+
+    public Collection<Player> getFriends() {
+        return friends;
+    }
+
+    public void setFriends(Collection<Player> friends) {
+        this.friends = friends;
+    }
+
+    public Collection<GameRecord> getGameRecords() {
+        return gameRecords;
+    }
+
+    public void setGameRecords(Collection<GameRecord> gameRecords) {
+        this.gameRecords = gameRecords;
+    }
+
+    public int getTrophies() {
+        return trophies;
+    }
+
+    public void setTrophies(int trophies) {
+        this.trophies = trophies;
+    }
+
+    public void addTrophies(int amount) {
+        this.trophies += amount;
+        if (this.trophies < 0) {
+            this.trophies = 0;
         }
-    
-        public void setFriendCode(String friendCode) {
-            this.friendCode = friendCode;
-        }
-    
-        public int getWinRate() {
-            return winRate;
-        }
-    
-        public void setWinRate(int winRate) {
-            this.winRate = winRate;
-        }
-    
-        public Collection<Player> getFriends() {
-            return friends;
-        }
-    
-        public void setFriends(Collection<Player> friends) {
-            this.friends = friends;
-        }
-    
-        public Collection<GameRecord> getGameRecords() {
-            return gameRecords;
-        }
-    
-        public void setGameRecords(Collection<GameRecord> gameRecords) {
-            this.gameRecords = gameRecords;
-        }
+    }
 
     @Override
     public String toString() {
@@ -192,6 +239,7 @@ public class Player {
                 ", friendCode='" + friendCode + '\'' +
                 ", winRate=" + winRate +
                 ", pieces=" + pieces +
+                ", trophies=" + trophies +
                 ", equippedProduct=" + equippedProduct +
                 ", game=" + (game != null ? game.getId() : null) +
                 ", ownedDice_count=" + (ownedDice != null ? ownedDice.size() : 0) +

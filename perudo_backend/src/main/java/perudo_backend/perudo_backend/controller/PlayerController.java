@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import perudo_backend.perudo_backend.Player;
+import perudo_backend.perudo_backend.dto.FriendDTO;
+import perudo_backend.perudo_backend.dto.PlayerDTO;
 import perudo_backend.perudo_backend.repositories.PlayerRepository;
 import perudo_backend.perudo_backend.LoginRequest;
 import perudo_backend.perudo_backend.services.PlayerService;
@@ -15,6 +17,7 @@ import perudo_backend.perudo_backend.services.PlayerService;
 import java.util.List;
 import java.util.Optional;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/players")
@@ -38,7 +41,7 @@ public class PlayerController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already exists");
         }
         Player createdPlayer = playerRepository.save(player);
-        logger.info("Player created successfully: {}", createdPlayer.getUsername());
+        logger.info("Player created successfully: {} - {}", createdPlayer.getUsername(), createdPlayer.getFriendCode());
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPlayer);
     }
 
@@ -46,8 +49,14 @@ public class PlayerController {
     public ResponseEntity<?> loginPlayer(@RequestBody LoginRequest loginRequest) {
         Optional<Player> player = playerRepository.findByUsername(loginRequest.getUsername());
         if (player.isPresent() && player.get().getPassword().equals(loginRequest.getPassword())) {
-            // Générer un token ou une session pour l'utilisateur si nécessaire
-            return ResponseEntity.ok(player.get());
+            // Return the user data including the id
+            Player loggedInPlayer = player.get();
+            loggedInPlayer.setPassword(null); // Ensure password is not sent
+
+            // Log the user data being sent
+            logger.info("User data being sent: {}", loggedInPlayer);
+
+            return ResponseEntity.ok(new PlayerDTO(loggedInPlayer));
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
         }
@@ -63,10 +72,18 @@ public class PlayerController {
         return player;
     }
 
-    // Get all Players
     @GetMapping
-    public List<Player> getAllPlayers() {
-        return playerRepository.findAll();
+    public List<PlayerDTO> getAllPlayers() {
+        List<Player> players = playerRepository.findAll();
+        return players.stream().map(PlayerDTO::new).collect(Collectors.toList());
+    }
+
+
+    // Get a Player by FriendCode
+    @GetMapping("/friendcode/{friendCode}")
+    public ResponseEntity<Player> getPlayerByFriendCode(@PathVariable String friendCode) {
+        Optional<Player> player = playerRepository.findByFriendCode(friendCode);
+        return player.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     // Get a Player by ID
@@ -116,7 +133,7 @@ public class PlayerController {
     public ResponseEntity<?> getInventory(@PathVariable int playerId) {
         Player player = playerService.getPlayerById(playerId);
         if (player == null) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(player.getDices());
+        return ResponseEntity.ok(player.getInventory());
     }
 
     // Acheter un dé
@@ -148,6 +165,62 @@ public class PlayerController {
             return ResponseEntity.ok().body(Map.of("message", "Coins updated successfully", "player", player));
         } else {
             logger.warn("Player not found with username: {}", username);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Player not found");
+        }
+    }
+
+    @GetMapping("/leaderboard")
+    public ResponseEntity<List<PlayerDTO>> getLeaderboard() {
+        logger.info("Récupération du leaderboard");
+        List<Player> players = playerRepository.findAllOrderByTrophiesDesc();
+        List<PlayerDTO> leaderboard = players.stream()
+            .map(PlayerDTO::new)
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(leaderboard);
+    }
+
+    // Mettre à jour les trophées d'un joueur
+    @PutMapping("/{playerId}/trophies")
+    public ResponseEntity<?> updatePlayerTrophies(@PathVariable int playerId, @RequestBody Map<String, Integer> body) {
+        logger.info("Mise à jour des trophées pour le joueur {}", playerId);
+        int trophiesToAdd = body.getOrDefault("amount", 0);
+        
+        Optional<Player> playerOpt = playerRepository.findById(playerId);
+        if (playerOpt.isPresent()) {
+            Player player = playerOpt.get();
+            player.addTrophies(trophiesToAdd);
+            playerRepository.save(player);
+            logger.info("Trophées mis à jour pour le joueur {}: nouveau total {}", playerId, player.getTrophies());
+            return ResponseEntity.ok().body(Map.of(
+                "message", "Trophées mis à jour avec succès",
+                "player", new PlayerDTO(player)
+            ));
+        } else {
+            logger.warn("Joueur {} non trouvé", playerId);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Joueur non trouvé");
+        }
+    }
+
+    @PostMapping("/verify-password")
+    public ResponseEntity<?> verifyPassword(@RequestBody Map<String, Object> body) {
+        Integer playerId = (Integer) body.get("playerId");
+        String password = (String) body.get("password");
+        
+        if (playerId == null || password == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Player ID and password are required");
+        }
+        
+        Optional<Player> playerOpt = playerRepository.findById(playerId);
+        if (playerOpt.isPresent()) {
+            Player player = playerOpt.get();
+            
+            // Vérifier si le mot de passe correspond
+            if (password.equals(player.getPassword())) {
+                return ResponseEntity.ok().build();
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid password");
+            }
+        } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Player not found");
         }
     }
