@@ -1,16 +1,16 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
+import NavDropdown from 'react-bootstrap/NavDropdown';
 import { Link, useNavigate } from 'react-router-dom';
-import { UserContext } from '../Auth/UserContext';
 import './navbar.css';
 import { useAuth } from '../Auth/authcontext';
 
 
 function NavScrollExample() {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -21,7 +21,7 @@ function NavScrollExample() {
   return (
     <Navbar expand="lg" className="bg-body-tertiary" data-bs-theme="dark">
       <Container fluid>
-        <Navbar.Brand href="/">Perudo</Navbar.Brand>
+        <Navbar.Brand as={Link} to="/">Perudo</Navbar.Brand>
         <Navbar.Toggle aria-controls="navbarScroll" />
         <Navbar.Collapse id="navbarScroll">
           <Nav
@@ -30,27 +30,46 @@ function NavScrollExample() {
             navbarScroll
           >
             <Nav.Link as={Link} to="/home">Home</Nav.Link>
-            <Nav.Link href="#action2">Rules</Nav.Link>
+            <Nav.Link as={Link} to="/leaderboard">Leaderboard</Nav.Link>
+            <Nav.Link as={Link} to="/shop">Shop</Nav.Link>
+            {isAuthenticated && (
+              <>
+                <Nav.Link as={Link} to="/inventory">Inventory</Nav.Link>
+                <Nav.Link as={Link} to="/friends">Friends</Nav.Link>
+              </>
+            )}
           </Nav>
+          
+          {isAuthenticated ? (
+            <Nav className="ms-auto">
+              <NavDropdown title={user?.username || "Account"} id="nav-dropdown-account">
+                <NavDropdown.Item as={Link} to="/profile">Profile</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/mail">Messages</NavDropdown.Item>
+                <NavDropdown.Divider />
+                <NavDropdown.Item onClick={handleLogout}>Logout</NavDropdown.Item>
+              </NavDropdown>
+              <Link to="/lobby" className="ms-2">
+                <Button variant="outline-success" id="lobby-button">
+                  Play
+                </Button>
+              </Link>
+            </Nav>
+          ) : (
+            <>
+              <Link to="/lobby" className="me-2">
+                <Button variant="outline-success" id="lobby-button">
+                  Play
+                </Button>
+              </Link>
+              <Link to="/connexion" className="me-2">
+                <Button variant="outline-success" id="connexion-button">Log In</Button>
+              </Link>
+              <Link to="/register">
+                <Button variant="outline-success" id="connexion-button">Register</Button>
+              </Link>
+            </>
+          )}
         </Navbar.Collapse>
-
-        <Link to="/lobby">
-          <Button variant="outline-success" id="lobby-button">
-            Play
-          </Button>
-        </Link>
-        {isAuthenticated ? (
-          <Button variant="outline-danger" id='logout-button' onClick={handleLogout}>Logout</Button>
-        ) : (
-          <>
-            <Link to='./Connexion'>
-              <Button variant="outline-success" id='connexion-button'>Log In</Button>
-            </Link>
-            <Link to='./Register'>
-              <Button variant="outline-success" id='connexion-button'>Register</Button>
-            </Link>
-          </>
-        )}
       </Container>
     </Navbar>
   );

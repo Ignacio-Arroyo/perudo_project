@@ -79,7 +79,7 @@ const Register = () => {
       if (response.status === 200) {
         console.log('Player created:', response.data);
         // Mettre à jour l'état d'authentification
-        login();
+        login(response.data);
         // Rediriger vers la page d'accueil
         navigate('/home');
       }

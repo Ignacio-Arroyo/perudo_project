@@ -43,6 +43,8 @@
     ]
   },
   "devDependencies": {
+    "axios-debug-log": "^1.0.0",
+    "http-proxy-middleware": "^3.0.5",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.0"
   }

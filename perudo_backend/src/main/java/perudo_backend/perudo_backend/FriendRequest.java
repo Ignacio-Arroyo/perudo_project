@@ -17,20 +17,19 @@ public class FriendRequest {
     @JoinColumn(name = "to_player_id")
     private Player toPlayer;
 
-    private String status; // e.g., "pending", "accepted", "rejected"
+    private LocalDateTime requestTime;
+    
+    private String status; // "PENDING", "ACCEPTED", "REJECTED"
 
-    private LocalDateTime createdAt;
-
-    // Constructors, getters, and setters
+    // Constructors
     public FriendRequest() {
-        this.createdAt = LocalDateTime.now();
     }
 
     public FriendRequest(Player fromPlayer, Player toPlayer) {
         this.fromPlayer = fromPlayer;
         this.toPlayer = toPlayer;
-        this.status = "pending";
-        this.createdAt = LocalDateTime.now();
+        this.requestTime = LocalDateTime.now();
+        this.status = "PENDING";
     }
 
     // Getters and setters
@@ -58,19 +57,19 @@ public class FriendRequest {
         this.toPlayer = toPlayer;
     }
 
+    public LocalDateTime getRequestTime() {
+        return requestTime;
+    }
+
+    public void setRequestTime(LocalDateTime requestTime) {
+        this.requestTime = requestTime;
+    }
+
     public String getStatus() {
         return status;
     }
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
     }
 }

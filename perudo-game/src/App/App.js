@@ -38,9 +38,9 @@ function App() {
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/test-coins" element={<TestCoins />} />
             <Route path="/update-player-coins" element={<UpdatePlayerCoinsPage />} />
+            <Route path="/friends" element={<FriendsPage />} />
+            <Route path="/mail" element={<MailPage />} />
             {/* <Route path="/statistics" element={<Statistics />} /> */}
-
-
           </Routes>
           <Footer  />
         </div>

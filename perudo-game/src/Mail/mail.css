@@ -1,0 +1,165 @@
+.mail-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.mail-container h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+}
+
+.mail-card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+}
+
+.mail-card h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #495057;
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 10px;
+}
+
+.request-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.request-item {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.request-item:last-child {
+    border-bottom: none;
+}
+
+.request-info {
+    display: flex;
+    align-items: center;
+}
+
+.request-username {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.request-text {
+    color: #666;
+}
+
+.request-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.accept-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.reject-button {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.accept-button:disabled, .reject-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.error-message {
+    color: #ff0000;
+    margin-bottom: 15px;
+}
+
+.success-message {
+    color: #4CAF50;
+    margin-bottom: 15px;
+}
+
+.loading-message {
+    color: #666;
+    font-style: italic;
+    text-align: center;
+    padding: 15px;
+}
+
+.no-requests {
+    color: #666;
+    font-style: italic;
+    text-align: center;
+    padding: 15px;
+}
+
+.debug-toggle {
+    margin-bottom: 15px;
+}
+
+.debug-toggle-button {
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.debug-section {
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-top: 10px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+}
+
+.debug-info {
+    font-family: monospace;
+    font-size: 0.8rem;
+}
+
+.debug-info p {
+    margin: 5px 0;
+}
+
+.refresh-button {
+    background-color: #e7e7e7;
+    border: none;
+    padding: 5px 10px;
+    margin-bottom: 10px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+@media (max-width: 600px) {
+    .request-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .request-actions {
+        margin-top: 10px;
+        align-self: flex-end;
+    }
+} 

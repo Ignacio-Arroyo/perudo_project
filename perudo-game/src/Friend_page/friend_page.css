@@ -1,0 +1,176 @@
+.friends-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.debug-toggle {
+    margin-bottom: 15px;
+}
+
+.debug-toggle-button {
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.debug-section {
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 4px;
+}
+
+.debug-info {
+    font-family: monospace;
+    font-size: 0.8rem;
+}
+
+.debug-info p {
+    margin: 5px 0;
+}
+
+.refresh-button {
+    background-color: #e7e7e7;
+    border: none;
+    padding: 5px 10px;
+    margin-bottom: 10px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.friends-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 20px;
+}
+
+.add-friend-card,
+.friends-list-card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    height: auto;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+}
+
+.friends-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+}
+
+.friends-list-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    border-radius: 4px;
+}
+
+.friend-item {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    background-color: white;
+    margin-bottom: 5px;
+}
+
+.friend-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.friend-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.friend-username {
+    font-weight: bold;
+}
+
+.friend-name {
+    color: #666;
+    font-size: 0.9em;
+}
+
+.friend-code-info {
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.friend-code {
+    font-weight: bold;
+    margin: 0 10px;
+}
+
+.copy-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.friend-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.friend-input {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.friend-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.friend-button:disabled {
+    background-color: #cccccc;
+}
+
+.error-message {
+    color: #ff0000;
+}
+
+.success-message {
+    color: #4CAF50;
+}
+
+.loading-message {
+    color: #666;
+    font-style: italic;
+}
+
+.no-friends {
+    color: #666;
+    font-style: italic;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 768px) {
+    .friends-section {
+        grid-template-columns: 1fr;
+    }
+} 
