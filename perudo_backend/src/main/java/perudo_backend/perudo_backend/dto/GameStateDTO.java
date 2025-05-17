@@ -1,0 +1,56 @@
+package perudo_backend.perudo_backend.dto;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import perudo_backend.perudo_backend.Game;
+
+public class GameStateDTO {
+    private String id;
+    private List<GamePlayerDTO> players;
+    private BidDTO currentBid;
+    private String currentPlayerId;
+    private int round;
+    private String status;
+
+    public GameStateDTO(Game game, String requestingPlayerId) {  // Changed parameter type to String
+        this.id = String.valueOf(game.getId());
+        this.players = game.getPlayers().stream()
+            .map(player -> new GamePlayerDTO(player, 
+                String.valueOf(player.getId()).equals(requestingPlayerId)))  // Fixed comparison
+            .collect(Collectors.toList());
+        this.currentBid = game.getCurrentBid() != null ? new BidDTO(game.getCurrentBid()) : null;
+        this.currentPlayerId = game.getCurrentPlayer() != null ? 
+            String.valueOf(game.getCurrentPlayer().getId()) : null;
+        this.round = game.getRound();
+        this.status = game.getStatus().toString();
+    }
+
+    // Update other constructors to be consistent
+    public GameStateDTO(Game game, Object object) {  // This can be removed if not needed
+        this(game, (String)null);  // Call main constructor with null requestingPlayerId
+    }
+
+    public GameStateDTO(Game game) {
+        this(game, (String)null);  // Call main constructor with null requestingPlayerId
+    }
+
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+
+    public List<GamePlayerDTO> getPlayers() { return players; }
+    public void setPlayers(List<GamePlayerDTO> players) { this.players = players; }
+
+    public BidDTO getCurrentBid() { return currentBid; }
+    public void setCurrentBid(BidDTO currentBid) { this.currentBid = currentBid; }
+
+    public String getCurrentPlayerId() { return currentPlayerId; }
+    public void setCurrentPlayerId(String currentPlayerId) { this.currentPlayerId = currentPlayerId; }
+
+    public int getRound() { return round; }
+    public void setRound(int round) { this.round = round; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+}
+

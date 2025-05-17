@@ -1,25 +1,47 @@
 import React, { useEffect, useState } from 'react';
-import { useStompClient } from 'react-stomp-hooks';
+import { Client } from '@stomp/stompjs';
 
 const GameBoard = () => {
     const [gameState, setGameState] = useState({});
-    const stompClient = useStompClient();
+    const [stompClient, setStompClient] = useState(null);
 
     useEffect(() => {
-        if (stompClient) {
-            stompClient.subscribe('/topic/game/updates', (message) => {
-                setGameState(JSON.parse(message.body));
-            });
-        }
-    }, [stompClient]);
+        const client = new Client({
+            brokerURL: 'ws://localhost:8080/ws',
+            onConnect: () => {
+                client.subscribe('/topic/game/updates', (message) => {
+                    setGameState(JSON.parse(message.body));
+                });
+            },
+            reconnectDelay: 5000,
+            heartbeatIncoming: 4000,
+            heartbeatOutgoing: 4000,
+        });
+
+        client.activate();
+        setStompClient(client);
+
+        return () => {
+            client.deactivate();
+        };
+    }, []);
 
     const handleMove = (move) => {
-        stompClient.send('/app/game/move', {}, JSON.stringify(move));
+        if (stompClient) {
+            stompClient.publish({
+                destination: '/app/game/move',
+                body: JSON.stringify(move),
+            });
+        }
     };
 
     return (
         <div>
-            {/* Render the game board and controls */}
+            <h1>Game Board</h1>
+            <div>
+                <button onClick={() => handleMove({ type: 'bid', value: 5 })}>Make a Bid</button>
+                <button onClick={() => handleMove({ type: 'challenge' })}>Challenge</button>
+            </div>
         </div>
     );
 };

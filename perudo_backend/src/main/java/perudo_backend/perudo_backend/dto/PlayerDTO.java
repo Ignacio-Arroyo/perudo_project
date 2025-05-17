@@ -3,16 +3,16 @@ import perudo_backend.perudo_backend.Player;
 
 
 public class PlayerDTO {
-    private int player_id;
+    private Long id;  // Changed from int to Long
     private String nom;
     private String prenom;
     private String username;
     private String friendCode;
-    private int winRate;
+    private double winRate;
 
     // Constructor
     public PlayerDTO(Player player) {
-        this.player_id = player.getId();
+        this.id = player.getId();
         this.nom = player.getNom();
         this.prenom = player.getPrenom();
         this.username = player.getUsername();
@@ -24,7 +24,7 @@ public class PlayerDTO {
     @Override
     public String toString() {
         return "PlayerDTO{" +
-                "player_id=" + player_id +
+                "player_id=" + id +
                 ", nom='" + nom + '\'' +
                 ", prenom='" + prenom + '\'' +
                 ", username='" + username + '\'' +
@@ -34,12 +34,12 @@ public class PlayerDTO {
     }
 
     // Getters and setters
-    public int getPlayer_id() {
-        return player_id;
+    public Long getId() {
+        return id;
     }
 
-    public void setPlayer_id(int player_id) {
-        this.player_id = player_id;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getNom() {
@@ -74,11 +74,11 @@ public class PlayerDTO {
         this.friendCode = friendCode;
     }
 
-    public int getWinRate() {
+    public double getWinRate() {
         return winRate;
     }
 
-    public void setWinRate(int winRate) {
+    public void setWinRate(double winRate) {
         this.winRate = winRate;
     }
 }
