@@ -1,0 +1,164 @@
+.game-board {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: #1a1a2e;
+    color: #fff;
+    min-height: 100vh;
+    font-family: 'Poppins', sans-serif;
+}
+
+.game-board h1 {
+    text-align: center;
+    color: #ffd700;
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.join-game {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin: 2rem 0;
+}
+
+.join-game input {
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    border: 2px solid #4a4e69;
+    background: #2a2a40;
+    color: #fff;
+    font-size: 1rem;
+}
+
+button {
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    border: none;
+    background: #ffd700;
+    color: #1a1a2e;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2);
+}
+
+.game-info {
+    background: #2a2a40;
+    border-radius: 15px;
+    padding: 2rem;
+    margin-top: 2rem;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.game-info h2 {
+    color: #ffd700;
+    margin-bottom: 1.5rem;
+}
+
+.players {
+    margin: 2rem 0;
+}
+
+.players ul {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.players li {
+    background: #3a3a50;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.current-player {
+    background: #4a4e69 !important;
+    border: 2px solid #ffd700;
+}
+
+.dice-list {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 1.5rem 0;
+}
+
+.die {
+    width: 60px;
+    height: 60px;
+    background: #fff;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #1a1a2e;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.die:hover {
+    transform: rotate(15deg);
+}
+
+.current-bid {
+    background: #3a3a50;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    text-align: center;
+}
+
+.bid-controls {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.bid-controls input {
+    width: 80px;
+    padding: 0.8rem;
+    border-radius: 8px;
+    border: 2px solid #4a4e69;
+    background: #2a2a40;
+    color: #fff;
+    font-size: 1rem;
+    text-align: center;
+}
+
+.bid-controls button {
+    min-width: 120px;
+}
+
+.bid-controls button:last-child {
+    background: #ff4757;
+}
+
+.bid-controls button:last-child:hover {
+    background: #ff6b81;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(5px) rotate(5deg); }
+    75% { transform: translateX(-5px) rotate(-5deg); }
+}
+
+.shake {
+    animation: shake 0.5s ease-in-out;
+}

@@ -157,7 +157,7 @@ function WebSocketProvider({ children }) {
             <Route path="/mail" element={<ProtectedRoute><MailPage /></ProtectedRoute>} />
             <Route path="/game/search" element={<ProtectedRoute><GameSearchPage /></ProtectedRoute>} />
             <Route path="/game/:gameId" element={<ProtectedRoute><GamePage /></ProtectedRoute>} />
-            <Route path="/game/board" element={<ProtectedRoute><GameBoard /></ProtectedRoute>} />
+            <Route path="/game/board" element={<GameBoard />} />
             <Route path="/websocket-test" element={<WebSocketTestPage />} />
             <Route path="/perudogame/:gameId" element={<PerudoGame />} />
             

@@ -143,6 +143,19 @@ public class GameService {
         return game;
     }
 
+    public Game getGame(String gameId) {
+        if (gameId == null || gameId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Game ID cannot be null or empty");
+        }
+
+        Game game = games.get(gameId);
+        if (game == null) {
+            throw new GameNotFoundException(gameId);
+        }
+
+        return game;
+    }
+
     private boolean resolveBidChallenge(Game game) {
         Bid currentBid = game.getCurrentBid();
         if (currentBid == null) {
@@ -237,11 +250,5 @@ public class GameService {
                 }
             }
         }
-    }
-
-    public Game getGame(String gameId) {
-        // TODO: Implement logic to retrieve a Game by its ID
-        // Example placeholder:
-        throw new UnsupportedOperationException("getGame(String) not implemented yet");
     }
 }
