@@ -17,6 +17,7 @@ const GameBoard = () => {
     const [dice, setDice] = useState([]);
     const [bid, setBid] = useState({ quantity: 1, value: 2 });
     const [stompClient, setStompClient] = useState(null);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const socket = new SockJS('http://localhost:8080/ws');
@@ -94,6 +95,14 @@ const GameBoard = () => {
             // Subscribe to game updates
             stompClient?.subscribe(`/topic/game/${gameId}/state`, (message) => {
                 const gameData = JSON.parse(message.body);
+                console.log('Received game state update:', gameData);
+                
+                if (gameData.status === 'ERROR') {
+                    setError(gameData.errorMessage);
+                    return;
+                }
+                
+                setError(null);
                 setGameState(gameData);
             });
         } catch (error) {
@@ -153,6 +162,12 @@ const GameBoard = () => {
         <div className="game-board">
             <h1>Perudo Game</h1>
             
+            {error && (
+                <div className="error-message">
+                    {error}
+                </div>
+            )}
+            
             {!gameState && (
                 <button onClick={createGame}>Create New Game</button>
             )}
@@ -205,7 +220,12 @@ const GameBoard = () => {
                     </div>
                     
                     {gameState.status === 'WAITING' && (
-                        <button onClick={() => startGame(gameState.id)}>Start Game</button>
+                        <button 
+                            onClick={() => startGame(gameState.id)}
+                            disabled={gameState.players.length < 2}
+                        >
+                            Start Game ({gameState.players.length}/2 players)
+                        </button>
                     )}
 
                     {dice.length > 0 && (

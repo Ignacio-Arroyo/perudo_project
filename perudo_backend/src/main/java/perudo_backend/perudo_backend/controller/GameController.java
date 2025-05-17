@@ -17,12 +17,19 @@ import perudo_backend.perudo_backend.dto.*;
 import perudo_backend.perudo_backend.services.*;
 import perudo_backend.exception.PlayerNotFoundException;
 import perudo_backend.perudo_backend.Dice;
+import perudo_backend.perudo_backend.GameStatus;
+import perudo_backend.exception.NotEnoughPlayersException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/games")
 public class GameController {
+
+    private static final Logger log = LoggerFactory.getLogger(GameController.class);
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
@@ -58,21 +65,19 @@ public class GameController {
 
     @MessageMapping("/game/start")
     public void startGame(StartGameRequest request) {
-        GameStateDTO gameState = gameService.startGame(request.getGameId());
-        Game game = gameService.getGame(request.getGameId());
-        
-        // Send initial game state to all players
-        messagingTemplate.convertAndSend("/topic/game/" + request.getGameId() + "/state", 
-            gameState);
-
-        // Send private dice rolls to each player
-        game.getPlayers().forEach(player -> {
-            messagingTemplate.convertAndSendToUser(
-                String.valueOf(player.getId()),
-                "/topic/game/" + game.getId() + "/dice",
-                new DiceRollDTO(String.valueOf(player.getId()), player.getDice().stream().map(Dice::getValue).collect(Collectors.toList()))
+        try {
+            GameStateDTO gameState = gameService.startGame(request.getGameId());
+            // Manually send to the specific game topic
+            messagingTemplate.convertAndSend("/topic/game/" + request.getGameId() + "/state", gameState);
+        } catch (NotEnoughPlayersException e) {
+            log.error("Cannot start game: {}", e.getMessage());
+            GameStateDTO errorState = new GameStateDTO(
+                request.getGameId(),
+                GameStatus.ERROR,
+                e.getMessage()
             );
-        });
+            messagingTemplate.convertAndSend("/topic/game/" + request.getGameId() + "/state", errorState);
+        }
     }
 
     @PostMapping("/{gameId}/players/{playerId}/bid")

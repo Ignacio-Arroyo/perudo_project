@@ -1,17 +1,18 @@
 package perudo_backend.perudo_backend.dto;
 
+import perudo_backend.perudo_backend.Game;
+import perudo_backend.perudo_backend.GameStatus;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import perudo_backend.perudo_backend.Game;
-
 public class GameStateDTO {
     private String id; // This will store the gameId
+    private GameStatus status;
     private List<GamePlayerDTO> players;
     private BidDTO currentBid;
     private String currentPlayerId;
     private int round;
-    private String status;
+    private String errorMessage;
 
     public GameStateDTO(Game game, String requestingPlayerId) {  // Changed parameter type to String
         if (game.getGameId() == null) {
@@ -26,7 +27,7 @@ public class GameStateDTO {
         this.currentPlayerId = game.getCurrentPlayer() != null ? 
             String.valueOf(game.getCurrentPlayer().getId()) : null;
         this.round = game.getRound();
-        this.status = game.getStatus().toString();
+        this.status = game.getStatus();
     }
 
     // Update other constructors to be consistent
@@ -50,7 +51,18 @@ public class GameStateDTO {
         this.currentPlayerId = game.getCurrentPlayer() != null ? 
             String.valueOf(game.getCurrentPlayer().getId()) : null;
         this.round = game.getRound();
-        this.status = game.getStatus().toString();
+        this.status = game.getStatus();
+    }
+
+    // Add new constructor for error states
+    public GameStateDTO(String gameId, GameStatus status, String errorMessage) {
+        this.id = gameId;
+        this.status = status;
+        this.errorMessage = errorMessage;
+    }
+
+    // Default constructor
+    public GameStateDTO() {
     }
 
     public String getId() {
@@ -76,9 +88,17 @@ public class GameStateDTO {
     public int getRound() { return round; }
     public void setRound(int round) { this.round = round; }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public GameStatus getStatus() { return status; }
+    public void setStatus(GameStatus status) { this.status = status; }
 
+    // Add getters and setters for errorMessage
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
 
     // Add toString for debugging
     @Override

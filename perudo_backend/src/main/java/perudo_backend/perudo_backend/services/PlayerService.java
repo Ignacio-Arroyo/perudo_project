@@ -9,6 +9,8 @@ import perudo_backend.perudo_backend.Player;
 import perudo_backend.perudo_backend.dto.FriendDTO;
 import perudo_backend.perudo_backend.repositories.PlayerRepository;
 
+import perudo_backend.perudo_backend.services.PlayerService;
+
 @Service
 public class PlayerService {
 
@@ -28,4 +30,5 @@ public class PlayerService {
         }
         return List.of(); // Return an empty list if the player is not found
     }
-}
+
+    }
