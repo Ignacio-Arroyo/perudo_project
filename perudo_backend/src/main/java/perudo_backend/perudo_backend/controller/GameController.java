@@ -33,7 +33,14 @@ public class GameController {
     @MessageMapping("/game/create")
     @SendTo("/topic/lobby")
     public GameStateDTO createGame() {
+        System.out.println("Received game creation request");
         GameStateDTO gameState = gameService.createGame();
+        System.out.println("Created game state: " + gameState);
+        
+        if (gameState.getId() == null || gameState.getId().equals("null")) {
+            throw new IllegalStateException("Game creation failed - invalid ID");
+        }
+        
         return gameState;
     }
 

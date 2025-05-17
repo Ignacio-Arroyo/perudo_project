@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 import perudo_backend.perudo_backend.Game;
 
 public class GameStateDTO {
-    private String id;
+    private String id; // This will store the gameId
     private List<GamePlayerDTO> players;
     private BidDTO currentBid;
     private String currentPlayerId;
@@ -14,7 +14,10 @@ public class GameStateDTO {
     private String status;
 
     public GameStateDTO(Game game, String requestingPlayerId) {  // Changed parameter type to String
-        this.id = String.valueOf(game.getId());
+        if (game.getGameId() == null) {
+            throw new IllegalStateException("Game ID cannot be null");
+        }
+        this.id = game.getGameId(); // Use gameId instead of id
         this.players = game.getPlayers().stream()
             .map(player -> new GamePlayerDTO(player, 
                 String.valueOf(player.getId()).equals(requestingPlayerId)))  // Fixed comparison
@@ -32,11 +35,34 @@ public class GameStateDTO {
     }
 
     public GameStateDTO(Game game) {
-        this(game, (String)null);  // Call main constructor with null requestingPlayerId
+        if (game == null) {
+            throw new IllegalArgumentException("Game cannot be null");
+        }
+        if (game.getGameId() == null || game.getGameId().equals("null")) {
+            throw new IllegalArgumentException("Game must have a valid ID");
+        }
+        
+        this.id = game.getGameId();
+        this.players = game.getPlayers().stream()
+            .map(player -> new GamePlayerDTO(player, false))
+            .collect(Collectors.toList());
+        this.currentBid = game.getCurrentBid() != null ? new BidDTO(game.getCurrentBid()) : null;
+        this.currentPlayerId = game.getCurrentPlayer() != null ? 
+            String.valueOf(game.getCurrentPlayer().getId()) : null;
+        this.round = game.getRound();
+        this.status = game.getStatus().toString();
     }
 
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        if (id == null || id.equals("null")) {
+            throw new IllegalArgumentException("Invalid game ID");
+        }
+        this.id = id;
+    }
 
     public List<GamePlayerDTO> getPlayers() { return players; }
     public void setPlayers(List<GamePlayerDTO> players) { this.players = players; }
@@ -52,5 +78,16 @@ public class GameStateDTO {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+
+    // Add toString for debugging
+    @Override
+    public String toString() {
+        return "GameStateDTO{" +
+            "id='" + id + '\'' +
+            ", status=" + status +
+            ", players=" + players +
+            '}';
+    }
 }
 

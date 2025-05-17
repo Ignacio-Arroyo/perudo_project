@@ -14,19 +14,44 @@ import perudo_backend.perudo_backend.dto.GameStateDTO;
 
 import java.util.*;
 import perudo_backend.perudo_backend.Dice;
+import java.util.concurrent.ConcurrentHashMap;
+import jakarta.annotation.PostConstruct;
 
 @Service
 public class GameService {
-    private final Map<String, Game> games = new HashMap<>();
+    private Map<String, Game> games = new ConcurrentHashMap<>();
     private static final int MAX_PLAYERS = 6;
     private static final int STARTING_DICE = 5;
 
+    @PostConstruct
+    public void init() {
+        games = new ConcurrentHashMap<>();
+    }
+
     public GameStateDTO createGame() {
         Game game = new Game();
-        game.setGameId(UUID.randomUUID().toString());  // Use gameId instead of id
+        String gameId = UUID.randomUUID().toString();
+        game.setGameId(gameId);
         game.setStatus(GameStatus.WAITING);
-        games.put(game.getGameId(), game);  // Use gameId as map key
-        return new GameStateDTO(game, null);
+        game.setPlayers(new ArrayList<>());
+        game.setName("Game-" + gameId.substring(0, 8)); // Add a name for the game
+        
+        // Debug logging
+        System.out.println("Creating new game with ID: " + gameId);
+        
+        // Store game in map
+        games.put(gameId, game);
+        
+        // Create DTO with the game ID
+        GameStateDTO dto = new GameStateDTO(game);
+        
+        // Verify DTO has correct ID
+        if (dto.getId() == null || dto.getId().equals("null")) {
+            throw new IllegalStateException("Failed to create game - DTO has invalid ID");
+        }
+        
+        System.out.println("Successfully created game. DTO: " + dto);
+        return dto;
     }
 
     public GameStateDTO joinGame(String gameId, String playerId) {

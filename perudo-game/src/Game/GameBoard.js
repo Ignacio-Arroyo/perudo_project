@@ -4,6 +4,13 @@ import SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
 import './gameboard.css';
 
+const axiosConfig = {
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    }
+};
+
 const GameBoard = () => {
     const [gameState, setGameState] = useState(null);
     const [playerId, setPlayerId] = useState(null);
@@ -12,18 +19,37 @@ const GameBoard = () => {
     const [stompClient, setStompClient] = useState(null);
 
     useEffect(() => {
-        // Initialize WebSocket connection
         const socket = new SockJS('http://localhost:8080/ws');
         const client = Stomp.over(socket);
         
         client.connect({}, () => {
             setStompClient(client);
             
-            // Subscribe to lobby updates
+            // Subscribe to lobby updates with enhanced debug logging
             client.subscribe('/topic/lobby', (message) => {
-                const gameData = JSON.parse(message.body);
-                setGameState(gameData);
+                console.log('Raw message received:', message);
+                try {
+                    const gameData = JSON.parse(message.body);
+                    console.log('Parsed game data:', gameData);
+                    
+                    if (!gameData) {
+                        console.error('No game data received');
+                        return;
+                    }
+                    
+                    if (!gameData.id || gameData.id === 'null' || gameData.id === null) {
+                        console.error('Invalid game ID received:', gameData);
+                        return;
+                    }
+
+                    console.log('Setting game state with valid ID:', gameData.id);
+                    setGameState(gameData);
+                } catch (error) {
+                    console.error('Error processing game data:', error);
+                }
             });
+        }, (error) => {
+            console.error('STOMP connection error:', error);
         });
 
         return () => {
@@ -35,29 +61,52 @@ const GameBoard = () => {
 
     const createGame = () => {
         if (stompClient) {
-            stompClient.send("/app/game/create", {}, {});
+            console.log('Sending game creation request');
+            try {
+                stompClient.send("/app/game/create", {}, JSON.stringify({}));
+                console.log('Game creation request sent successfully');
+            } catch (error) {
+                console.error('Error sending game creation request:', error);
+            }
+        } else {
+            console.error('WebSocket connection not established');
         }
     };
 
+    // Update joinGame to use correct endpoint
     const joinGame = async (gameId, playerId) => {
+        if (!gameId || !playerId) {
+            console.error('Missing data for join:', { gameId, playerId, gameState });
+            return;
+        }
+        
         try {
-            const response = await axios.post(`http://localhost:8080/api/games/${gameId}/join/${playerId}`);
+            console.log('Joining game:', { gameId, playerId });
+            const response = await axios.post(
+                `http://localhost:8080/api/games/${gameId}/join/${playerId}`,
+                {},
+                axiosConfig
+            );
+            console.log('Join response:', response.data);
             setPlayerId(playerId);
             setGameState(response.data);
             
             // Subscribe to game updates
-            stompClient.subscribe(`/topic/game/${gameId}/state`, (message) => {
+            stompClient?.subscribe(`/topic/game/${gameId}/state`, (message) => {
                 const gameData = JSON.parse(message.body);
                 setGameState(gameData);
             });
-
-            // Subscribe to personal dice updates
-            stompClient.subscribe(`/user/topic/game/${gameId}/dice`, (message) => {
-                const diceData = JSON.parse(message.body);
-                setDice(diceData.values);
-            });
         } catch (error) {
-            console.error('Error joining game:', error);
+            console.error('Join error:', error.response?.data || error);
+        }
+    };
+
+    const getDiceState = async (gameId, playerId) => {
+        try {
+            const response = await axios.get(`http://localhost:8080/api/games/${gameId}/players/${playerId}/dice`, axiosConfig);
+            setDice(response.data.values);
+        } catch (error) {
+            console.error('Error getting dice state:', error);
         }
     };
 
@@ -91,6 +140,15 @@ const GameBoard = () => {
         }
     };
 
+    const updateGameState = async (gameId, playerId) => {
+        try {
+            const response = await axios.get(`http://localhost:8080/api/games/${gameId}/players/${playerId}`, axiosConfig);
+            setGameState(response.data);
+        } catch (error) {
+            console.error('Error updating game state:', error);
+        }
+    };
+
     return (
         <div className="game-board">
             <h1>Perudo Game</h1>
@@ -101,8 +159,32 @@ const GameBoard = () => {
 
             {gameState && !playerId && (
                 <div className="join-game">
-                    <input type="text" placeholder="Enter Player ID" id="playerId" />
-                    <button onClick={() => joinGame(gameState.id, document.getElementById('playerId').value)}>
+                    <div className="game-id-display">
+                        <p>Game ID: {gameState.id}</p> {/* Changed from gameState.gameId */}
+                    </div>
+                    <input 
+                        type="text" 
+                        placeholder="Enter Player ID" 
+                        id="playerId"
+                    />
+                    <button 
+                        onClick={() => {
+                            const playerIdValue = document.getElementById('playerId').value;
+                            if (!gameState?.id) {
+                                console.error('No game ID available');
+                                return;
+                            }
+                            if (!playerIdValue) {
+                                console.error('No player ID entered');
+                                return;
+                            }
+                            console.log('Join attempt:', {
+                                gameId: gameState.id,
+                                playerId: playerIdValue
+                            });
+                            joinGame(gameState.id, playerIdValue);
+                        }}
+                    >
                         Join Game
                     </button>
                 </div>
