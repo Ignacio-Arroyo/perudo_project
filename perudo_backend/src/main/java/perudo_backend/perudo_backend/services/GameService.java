@@ -76,25 +76,56 @@ public class GameService {
     }
 
     public GameStateDTO startGame(String gameId) {
-        Game game = findById(gameId);
-        
-        if (game.getPlayers().size() < 2) {
-            throw new NotEnoughPlayersException();
+        Game game = games.get(gameId);
+        if (game == null) {
+            throw new GameNotFoundException("Game not found: " + gameId);
         }
 
-        // Initialize game
-        game.setStatus(GameStatus.PLAYING);
-        game.setRound(1);
+        if (game.getPlayers().size() < 2) {
+            throw new NotEnoughPlayersException("Not enough players to start the game. Minimum required: 2");
+        }
+
+        // Set initial game state to rolling phase
+        game.setStatus(GameStatus.ROLLING);
         
-        // Roll dice for all players
-        game.getPlayers().forEach(this::rollDiceForPlayer);
+        // Reset all players' roll status
+        game.getPlayers().forEach(player -> player.setHasRolled(false));
+        
+        return new GameStateDTO(game);
+    }
 
-        // Select random first player
-        List<Player> playersList = new ArrayList<>(game.getPlayers());
-        int randomIndex = new Random().nextInt(playersList.size());
-        game.setCurrentPlayer(playersList.get(randomIndex));
+    public GameStateDTO handleRoll(String gameId, String playerId) {
+        Game game = games.get(gameId);
+        if (game == null) {
+            throw new GameNotFoundException("Game not found: " + gameId);
+        }
 
-        return new GameStateDTO(game, null);
+        Player player = game.getPlayers().stream()
+            .filter(p -> p.getId().equals(playerId))
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("Player not found: " + playerId));
+
+        // Generate random dice values
+        Random random = new Random();
+        List<Dice> newDice = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            Dice dice = new Dice();
+            dice.setValue(random.nextInt(6) + 1);
+            newDice.add(dice);
+        }
+        player.setDice(newDice);
+        player.setHasRolled(true);
+
+        // Check if all players have rolled
+        boolean allRolled = game.getPlayers().stream().allMatch(Player::getHasRolled);
+        if (allRolled) {
+            game.setStatus(GameStatus.PLAYING);
+            // Randomly select first player
+            int firstPlayerIndex = random.nextInt(game.getPlayers().size());
+            game.setCurrentPlayer(game.getPlayers().get(firstPlayerIndex));
+        }
+
+        return new GameStateDTO(game);
     }
 
     private List<Dice> createDiceForPlayer(int count, Player player) {
@@ -275,5 +306,14 @@ public class GameService {
                 }
             }
         }
+    }
+
+
+    public Player getPlayer(String gameId, String playerId) {
+        Game game = findById(gameId);
+        return game.getPlayers().stream()
+            .filter(p -> String.valueOf(p.getId()).equals(playerId))
+            .findFirst()
+            .orElseThrow(() -> new perudo_backend.exception.PlayerNotFoundException(playerId));
     }
 }

@@ -20,6 +20,8 @@ public class Player {
     private double winRate;
     private String friendCode;
 
+    private boolean hasRolled;
+
     @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Dice> dice = new ArrayList<>();
 
@@ -187,6 +189,14 @@ public class Player {
 
     public void setCurrentTurn(boolean currentTurn) {
         this.currentTurn = currentTurn;
+    }
+
+    public boolean getHasRolled() {
+        return hasRolled;
+    }
+
+    public void setHasRolled(boolean hasRolled) {
+        this.hasRolled = hasRolled;
     }
 
     // Helper methods for managing relationships

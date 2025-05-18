@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import perudo_backend.perudo_backend.Game;
 import perudo_backend.perudo_backend.Player;
 import perudo_backend.perudo_backend.dto.*;
+import perudo_backend.perudo_backend.dto.RollDiceRequest;
 import perudo_backend.perudo_backend.services.*;
 import perudo_backend.exception.PlayerNotFoundException;
 import perudo_backend.perudo_backend.Dice;
@@ -139,6 +140,39 @@ public class GameController {
             .collect(Collectors.toList());
         
         return ResponseEntity.ok(new DiceRollDTO(String.valueOf(player.getId()), diceValues));
+    }
+
+    @MessageMapping("/game/roll")
+    public void handleRoll(RollDiceRequest request) {
+        try {
+            GameStateDTO gameState = gameService.handleRoll(request.getGameId(), request.getPlayerId());
+            
+            // Send updated game state to all players
+            messagingTemplate.convertAndSend("/topic/game/" + request.getGameId() + "/state", gameState);
+            
+            // Send private dice info to the player who rolled
+            Player player = gameService.getPlayer(request.getGameId(), request.getPlayerId());
+            DiceRollDTO diceRoll = new DiceRollDTO(
+                request.getPlayerId(),
+                player.getDice().stream()
+                    .map(Dice::getValue)
+                    .collect(Collectors.toList())
+            );
+            
+            messagingTemplate.convertAndSendToUser(
+                request.getPlayerId(),
+                "/queue/game/" + request.getGameId() + "/dice",
+                diceRoll
+            );
+        } catch (Exception e) {
+            log.error("Error handling roll: ", e);
+            GameStateDTO errorState = new GameStateDTO(
+                request.getGameId(),
+                GameStatus.ERROR,
+                e.getMessage()
+            );
+            messagingTemplate.convertAndSend("/topic/game/" + request.getGameId() + "/state", errorState);
+        }
     }
 
     private int getUserId(Principal principal) {

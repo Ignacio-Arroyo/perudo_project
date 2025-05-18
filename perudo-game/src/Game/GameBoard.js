@@ -18,6 +18,8 @@ const GameBoard = () => {
     const [bid, setBid] = useState({ quantity: 1, value: 2 });
     const [stompClient, setStompClient] = useState(null);
     const [error, setError] = useState(null);
+    // Add new state for tracking dice rolling status
+    const [hasRolled, setHasRolled] = useState(false);
 
     useEffect(() => {
         const socket = new SockJS('http://localhost:8080/ws');
@@ -93,13 +95,27 @@ const GameBoard = () => {
             setGameState(response.data);
             
             // Subscribe to game updates
+            stompClient?.subscribe(`/user/${playerId}/queue/game/${gameId}/dice`, (message) => {
+                const diceData = JSON.parse(message.body);
+                console.log('Received dice roll:', diceData);
+                if (diceData.values) {
+                    setDice(diceData.values);
+                    setHasRolled(true);
+                }
+            });
+
             stompClient?.subscribe(`/topic/game/${gameId}/state`, (message) => {
                 const gameData = JSON.parse(message.body);
-                console.log('Received game state update:', gameData);
+                console.log('Game status:', gameData.status); // Debug log
                 
                 if (gameData.status === 'ERROR') {
                     setError(gameData.errorMessage);
                     return;
+                }
+                
+                if (gameData.status === 'PLAYING') {
+                    // Reset roll status when game actually starts
+                    setHasRolled(false);
                 }
                 
                 setError(null);
@@ -156,6 +172,22 @@ const GameBoard = () => {
         } catch (error) {
             console.error('Error updating game state:', error);
         }
+    };
+
+    // Add rollDice function
+    const rollDice = () => {
+        if (!stompClient || !gameState || !playerId) {
+            setError('Cannot roll dice: connection not established');
+            return;
+        }
+
+        console.log('Rolling dice for player:', playerId);
+        stompClient.send("/app/game/roll", {}, 
+            JSON.stringify({
+                gameId: gameState.id,
+                playerId: playerId
+            })
+        );
     };
 
     return (
@@ -226,6 +258,29 @@ const GameBoard = () => {
                         >
                             Start Game ({gameState.players.length}/2 players)
                         </button>
+                    )}
+
+                    {gameState.status === 'ROLLING' && (
+                        <div className="rolling-phase">
+                            <h3>Rolling Phase</h3>
+                            {!hasRolled ? (
+                                <button 
+                                    onClick={rollDice}
+                                    className="roll-button"
+                                >
+                                    Roll Your Dice
+                                </button>
+                            ) : (
+                                <p>Waiting for other players to roll...</p>
+                            )}
+                            <div className="players-status">
+                                {gameState.players.map(player => (
+                                    <div key={player.id} className="player-status">
+                                        {player.username}: {player.hasRolled ? '✓ Rolled' : 'Waiting to roll...'}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     )}
 
                     {dice.length > 0 && (
