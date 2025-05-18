@@ -79,7 +79,7 @@ const GameBoard = () => {
     // Update joinGame to use correct endpoint
     const joinGame = async (gameId, playerId) => {
         if (!gameId || !playerId) {
-            console.error('Missing data for join:', { gameId, playerId, gameState });
+            console.error('Missing data for join:', { gameId, playerId });
             return;
         }
         
@@ -91,8 +91,14 @@ const GameBoard = () => {
                 axiosConfig
             );
             console.log('Join response:', response.data);
-            setPlayerId(playerId);
+            
+            // Ensure playerId is stored as a string
+            const playerIdString = String(playerId);
+            setPlayerId(playerIdString);
             setGameState(response.data);
+            
+            // Log the stored player ID
+            console.log('Stored player ID:', playerIdString);
             
             // Subscribe to game updates
             stompClient?.subscribe(`/user/${playerId}/queue/game/${gameId}/dice`, (message) => {
@@ -123,6 +129,7 @@ const GameBoard = () => {
             });
         } catch (error) {
             console.error('Join error:', error.response?.data || error);
+            setError(error.response?.data?.message || 'Failed to join game');
         }
     };
 
@@ -181,13 +188,18 @@ const GameBoard = () => {
             return;
         }
 
-        console.log('Rolling dice for player:', playerId);
-        stompClient.send("/app/game/roll", {}, 
-            JSON.stringify({
+        console.log('Rolling dice for player:', playerId, 'in game:', gameState.id);
+        try {
+            const rollRequest = {
                 gameId: gameState.id,
-                playerId: playerId
-            })
-        );
+                playerId: String(playerId) // Ensure playerId is a string
+            };
+            console.log('Sending roll request:', rollRequest);
+            stompClient.send("/app/game/roll", {}, JSON.stringify(rollRequest));
+        } catch (error) {
+            console.error('Error rolling dice:', error);
+            setError('Failed to roll dice: ' + error.message);
+        }
     };
 
     return (

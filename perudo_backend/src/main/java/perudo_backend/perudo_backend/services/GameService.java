@@ -13,12 +13,17 @@ import perudo_backend.perudo_backend.Player;
 import perudo_backend.perudo_backend.dto.GameStateDTO;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import perudo_backend.perudo_backend.Dice;
 import java.util.concurrent.ConcurrentHashMap;
 import jakarta.annotation.PostConstruct;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Service
 public class GameService {
+    private static final Logger log = LoggerFactory.getLogger(GameService.class);
     private Map<String, Game> games = new ConcurrentHashMap<>();
     private static final int MAX_PLAYERS = 6;
     private static final int STARTING_DICE = 5;
@@ -95,15 +100,32 @@ public class GameService {
     }
 
     public GameStateDTO handleRoll(String gameId, String playerId) {
+        log.info("Handling roll for game: {} and player: {}", gameId, playerId);
+        
         Game game = games.get(gameId);
         if (game == null) {
             throw new GameNotFoundException("Game not found: " + gameId);
         }
 
+        // Debug log to see all players and their IDs
+        game.getPlayers().forEach(p -> 
+            log.info("Player in game: ID={}, Username={}", p.getId(), p.getUsername())
+        );
+
+        // Convert player ID comparison to string
         Player player = game.getPlayers().stream()
-            .filter(p -> p.getId().equals(playerId))
+            .filter(p -> String.valueOf(p.getId()).equals(playerId))
             .findFirst()
-            .orElseThrow(() -> new IllegalStateException("Player not found: " + playerId));
+            .orElseThrow(() -> {
+                log.error("Player {} not found in game {}. Available players: {}", 
+                    playerId, 
+                    gameId, 
+                    game.getPlayers().stream()
+                        .map(p -> "ID:" + p.getId())
+                        .collect(Collectors.joining(", "))
+                );
+                return new perudo_backend.exception.PlayerNotFoundException("Player not found: " + playerId);
+            });
 
         // Generate random dice values
         Random random = new Random();
@@ -111,8 +133,10 @@ public class GameService {
         for (int i = 0; i < 5; i++) {
             Dice dice = new Dice();
             dice.setValue(random.nextInt(6) + 1);
+            dice.setPlayer(player);
             newDice.add(dice);
         }
+        
         player.setDice(newDice);
         player.setHasRolled(true);
 

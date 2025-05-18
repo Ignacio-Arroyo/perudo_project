@@ -145,6 +145,14 @@ public class GameController {
     @MessageMapping("/game/roll")
     public void handleRoll(RollDiceRequest request) {
         try {
+            log.info("Received roll request for player {} in game {}", request.getPlayerId(), request.getGameId());
+            
+            // Log the players in the game
+            Game game = gameService.getGame(request.getGameId());
+            log.info("Players in game: {}", game.getPlayers().stream()
+                .map(p -> "ID: " + p.getId() + ", Username: " + p.getUsername())
+                .collect(Collectors.joining(", ")));
+                
             GameStateDTO gameState = gameService.handleRoll(request.getGameId(), request.getPlayerId());
             
             // Send updated game state to all players
