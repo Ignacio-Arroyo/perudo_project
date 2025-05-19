@@ -133,10 +133,19 @@ const GameBoard = () => {
                 console.log('Players:', gameData.players);
                 console.log('Turn sequence:', gameData.turnSequence);
                 console.log('Current player:', gameData.currentPlayer);
-                
-                // Debug check for turn sequence initialization
-                if (gameData.status === 'PLAYING' && (!gameData.turnSequence || !Array.isArray(gameData.turnSequence))) {
-                    console.warn('Game is in PLAYING state but turnSequence is not properly initialized:', gameData.turnSequence);
+
+                // Handle game state changes
+                if (gameData.status === 'PLAYING' && gameData.players?.length > 0) {
+                    // Initialize turn sequence and current player if not set
+                    if (!gameData.turnSequence || gameData.turnSequence.length === 0) {
+                        gameData.turnSequence = [...gameData.players];
+                        console.log('Created turn sequence:', gameData.turnSequence);
+                    }
+                    
+                    if (!gameData.currentPlayer && gameData.turnSequence.length > 0) {
+                        gameData.currentPlayer = gameData.turnSequence[0];
+                        console.log('Set initial current player:', gameData.currentPlayer);
+                    }
                     // If players exist but no turn sequence, create one from players array
                     if (gameData.players && Array.isArray(gameData.players)) {
                         gameData.turnSequence = [...gameData.players];
@@ -364,9 +373,7 @@ const GameBoard = () => {
                         </div>
                     )}                    {gameState && gameState.status === 'PLAYING' && (
                         <div className="turn-sequence">
-                            <h3>Turn Order:</h3>
-                            {console.log('Rendering turn sequence:', gameState.turnSequence)}
-                            <div className="player-sequence">
+                            <h3>Turn Order:</h3>                            <div className="player-sequence">
                                 {!gameState.turnSequence ? (
                                     <p>Establishing turn order...</p>
                                 ) : !Array.isArray(gameState.turnSequence) ? (
@@ -374,27 +381,30 @@ const GameBoard = () => {
                                 ) : gameState.turnSequence.length === 0 ? (
                                     <p>Waiting for players to be added to turn sequence...</p>
                                 ) : (
-                                    gameState.turnSequence.map((player, index) => (
-                                        <div 
-                                            key={player.id}
-                                            className={`sequence-player ${
-                                                player.id === gameState.currentPlayer?.id ? 'current-turn' : ''
-                                            }`}
-                                        >
-                                            <span className="player-number">{index + 1}</span>
-                                            <span className="player-name">{player.username}</span>
-                                            {player.id === gameState.currentPlayer?.id && (
-                                                <span className="current-marker">🎲</span>
-                                            )}
-                                        </div>
-                                    ))
+                                    gameState.turnSequence.map((player, index) => {
+                                        console.log('Rendering player in sequence:', player); // Debug log
+                                        return (
+                                            <div 
+                                                key={player.id}
+                                                className={`sequence-player ${
+                                                    player.id === gameState.currentPlayer?.id ? 'current-turn' : ''
+                                                }`}
+                                            >
+                                                {/* Debug log for username */}
+                                                {console.log('Player username:', player.username)}
+                                                <span className="player-name">{player.username || user?.username || `Player ${index + 1}`}</span>
+                                                {player.id === gameState.currentPlayer?.id && (
+                                                    <span className="current-marker">🎲 Current Turn</span>
+                                                )}
+                                            </div>
+                                        );
+                                    })
                                 )}
-                            </div>
-
-                            {gameState.currentPlayer?.id === user?.id && (
+                            </div>                            {/* Show action controls when it's the player's turn and game is in PLAYING state */}
+                            {gameState.status === 'PLAYING' && String(gameState.currentPlayer?.id) === String(user?.id) && (
                                 <div className="action-controls">
                                     <div className="bid-form">
-                                        <h4>Place Your Bid</h4>
+                                        <h4>Your Turn - Place Your Bid</h4>
                                         <div className="bid-inputs">
                                             <label>
                                                 Quantity:
@@ -425,14 +435,20 @@ const GameBoard = () => {
                                         <div className="action-buttons">
                                             <button 
                                                 className="bid-button"
-                                                onClick={() => placeBid(gameState.id, bidInput)}
+                                                onClick={() => {
+                                                    console.log('Placing bid:', { gameId: gameState.id, bid: bidInput });
+                                                    placeBid(gameState.id, bidInput);
+                                                }}
                                             >
                                                 Place Bid
                                             </button>
                                             {gameState.currentBid && (
                                                 <button 
                                                     className="challenge-button"
-                                                    onClick={() => challenge(gameState.id)}
+                                                    onClick={() => {
+                                                        console.log('Challenging bid in game:', gameState.id);
+                                                        challenge(gameState.id);
+                                                    }}
                                                 >
                                                     Challenge Last Bid
                                                 </button>
