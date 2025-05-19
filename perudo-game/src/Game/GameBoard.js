@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
+import { UserContext } from '../Auth/UserContext';
 import './gameboard.css';
 
 const axiosConfig = {
@@ -12,6 +13,7 @@ const axiosConfig = {
 };
 
 const GameBoard = () => {
+    const { user } = useContext(UserContext);
     const [gameState, setGameState] = useState(null);
     const [playerId, setPlayerId] = useState(null);
     const [dice, setDice] = useState([]);
@@ -78,30 +80,25 @@ const GameBoard = () => {
 
     // Update joinGame to use correct endpoint
     const joinGame = async (gameId, playerId) => {
-        if (!gameId || !playerId) {
-            console.error('Missing data for join:', { gameId, playerId });
+        if (!gameId || !user?.id) {
+            console.error('Missing data for join:', { gameId, userId: user?.id });
             return;
         }
         
         try {
-            console.log('Joining game:', { gameId, playerId });
+            console.log('Joining game:', { gameId, playerId: user.id });
             const response = await axios.post(
-                `http://localhost:8080/api/games/${gameId}/join/${playerId}`,
+                `http://localhost:8080/api/games/${gameId}/join/${user.id}`,
                 {},
                 axiosConfig
             );
             console.log('Join response:', response.data);
             
-            // Ensure playerId is stored as a string
-            const playerIdString = String(playerId);
-            setPlayerId(playerIdString);
+            setPlayerId(user.id);
             setGameState(response.data);
             
-            // Log the stored player ID
-            console.log('Stored player ID:', playerIdString);
-            
-            // Subscribe to game updates
-            stompClient?.subscribe(`/user/${playerId}/queue/game/${gameId}/dice`, (message) => {
+            // Subscribe to game updates with user ID
+            stompClient?.subscribe(`/user/${user.id}/queue/game/${gameId}/dice`, (message) => {
                 const diceData = JSON.parse(message.body);
                 console.log('Received dice roll:', diceData);
                 if (diceData.values) {
@@ -216,35 +213,30 @@ const GameBoard = () => {
                 <button onClick={createGame}>Create New Game</button>
             )}
 
-            {gameState && !playerId && (
+            {gameState && !playerId && user && (
                 <div className="join-game">
                     <div className="game-id-display">
-                        <p>Game ID: {gameState.id}</p> {/* Changed from gameState.gameId */}
+                        <p>Game ID: {gameState.id}</p>
                     </div>
-                    <input 
-                        type="text" 
-                        placeholder="Enter Player ID" 
-                        id="playerId"
-                    />
                     <button 
                         onClick={() => {
-                            const playerIdValue = document.getElementById('playerId').value;
                             if (!gameState?.id) {
                                 console.error('No game ID available');
                                 return;
                             }
-                            if (!playerIdValue) {
-                                console.error('No player ID entered');
+                            if (!user?.id) {
+                                console.error('No user logged in');
+                                setError('Please log in to join the game');
                                 return;
                             }
                             console.log('Join attempt:', {
                                 gameId: gameState.id,
-                                playerId: playerIdValue
+                                playerId: user.id
                             });
-                            joinGame(gameState.id, playerIdValue);
+                            joinGame(gameState.id, user.id);
                         }}
                     >
-                        Join Game
+                        Join Game as {user.username}
                     </button>
                 </div>
             )}
@@ -257,7 +249,10 @@ const GameBoard = () => {
                         <ul>
                             {gameState.players.map(player => (
                                 <li key={player.id} className={player.id === playerId ? 'current-player' : ''}>
-                                    {player.username} ({player.dice.length} dice)
+                                    <div className="player-info">
+                                        <span className="player-username">{player.username}</span>
+                                        <span className="dice-count">({player.dice.length} dice)</span>
+                                    </div>
                                 </li>
                             ))}
                         </ul>
@@ -297,11 +292,14 @@ const GameBoard = () => {
 
                     {dice.length > 0 && (
                         <div className="your-dice">
-                            <h3>Your Dice:</h3>
-                            <div className="dice-list">
-                                {dice.map((value, index) => (
-                                    <span key={index} className="die">{value}</span>
-                                ))}
+                            <h3>{user?.username}'s Dice:</h3>
+                            <div className="dice-container">
+                                <div className="username-label">{user?.username}</div>
+                                <div className="dice-list">
+                                    {dice.map((value, index) => (
+                                        <span key={index} className="die">{value}</span>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     )}
