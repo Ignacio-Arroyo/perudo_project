@@ -42,6 +42,9 @@ const Home = () => {
         <div className="block" onClick={() => handleNavigation('/products')}>
           Add Products
         </div>
+        <div className="block" onClick={() => handleNavigation('/game/board')}>
+          Board
+        </div>
       </div>
     </div>
   );

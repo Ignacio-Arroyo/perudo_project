@@ -10,6 +10,16 @@ const Queue_box = () => {
         <div className='main-block'>
             <h1>Search for a public game</h1>
 
+            <div className='lobby-form'>
+                <Button 
+                    id='search-public-game'
+                    className='queue-button public-match-button'
+                    size="lg"
+                >
+                    Search for Public Match
+                </Button>
+            </div>
+
             {/* need to see if we will add public lobbies or only private --level of complexity for the matchmaking */}
 
             {/* <div className='lobby-form'>  

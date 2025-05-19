@@ -25,10 +25,10 @@ const Login = () => {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError(null);
+    
     try {
       const response = await axios.post('http://localhost:8080/api/players/login', {
         username: formData.username,
@@ -49,19 +49,10 @@ const Login = () => {
         navigate('/home'); // Assurez-vous que cette route est définie dans votre application
       }
     } catch (error) {
-      if (error.response) {
-        if (error.response.status === 401) {
-          setError('Invalid username or password.');
-        } else {
-          console.error('Error logging in:', error);
-          setError('An error occurred while logging in.');
-        }
-      } else {
         console.error('Error logging in:', error);
-        setError('An error occurred while logging in.');
-      }
+        setError(error.response?.data?.message || error.message || 'Login failed');
     }
-  };
+};
 
   return (
     <div className='home-middle-section'>

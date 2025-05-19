@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@stomp/stompjs": "^7.1.1",
+    "react-stomp-hooks": "^3.0.1"
+  }
+}

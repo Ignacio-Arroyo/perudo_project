@@ -62,7 +62,6 @@ public class PlayerController {
         }
     }
         
-
     @GetMapping("/{playerId}")
     public Player getPlayerProfile(@PathVariable int playerId) {
         Player player = playerService.getPlayerById(playerId);

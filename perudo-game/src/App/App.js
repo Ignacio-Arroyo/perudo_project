@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useContext, useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { StompSessionProvider } from 'react-stomp-hooks';
 import Navbar from '../NavBar/navbar';
 import Footer from '../Footer/footer';
 import Home_middle_section from '../Home_middle_section/home_middle_section';
@@ -12,6 +13,9 @@ import Leaderboard from '../Leaderboard/leaderboard';
 import Shop from '../Shop/shop';
 import FriendsPage from '../Friend_page/friend_page';
 import MailPage from '../Mail/mail';
+import GameSearchPage from '../Game/GameSearchPage';
+import GamePage from '../Game/GamePage';
+import GameBoard from '../Game/GameBoard';
 import ProductList from '../ProductList/product_list';
 import Inventory from '../Inventory/Inventory';
 import { AuthProvider } from '../Auth/authcontext';

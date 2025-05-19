@@ -1,59 +1,46 @@
 package perudo_backend.perudo_backend;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "game_records")
 public class GameRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int record_id;
-    private boolean victory; // Indique si le joueur a gagné
-    private int score; // Score obtenu lors de la partie
+    private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "player_id")
-    private Player player; // Référence au joueur associé à cet enregistrement
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "player_id", nullable = false)
+    private Player player;
 
-    // Constructeur par défaut
+    @Column(nullable = false)
+    private LocalDateTime playedAt;
+
+    @Column(nullable = false)
+    private boolean won;
+
+    @Column(nullable = false)
+    private int scoreChange;
+
+    // Constructeurs
     public GameRecord() {
     }
 
-    // Constructeur avec paramètres
-    public GameRecord(boolean victory, int score, Player player) {
-        this.victory = victory;
-        this.score = score;
+    public GameRecord(Player player, LocalDateTime playedAt, boolean won, int scoreChange) {
         this.player = player;
+        this.playedAt = playedAt;
+        this.won = won;
+        this.scoreChange = scoreChange;
     }
 
     // Getters et Setters
-
-    public int getRecordId() {
-        return record_id;
+    public Long getId() {
+        return id;
     }
 
-    public void setRecordId(int record_id) {
-        this.record_id = record_id;
-    }
-
-    public boolean isVictory() {
-        return victory;
-    }
-
-    public void setVictory(boolean victory) {
-        this.victory = victory;
-    }
-
-    public int getScore() {
-        return score;
-    }
-
-    public void setScore(int score) {
-        this.score = score;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public Player getPlayer() {
@@ -62,6 +49,30 @@ public class GameRecord {
 
     public void setPlayer(Player player) {
         this.player = player;
+    }
+
+    public LocalDateTime getPlayedAt() {
+        return playedAt;
+    }
+
+    public void setPlayedAt(LocalDateTime playedAt) {
+        this.playedAt = playedAt;
+    }
+
+    public boolean isWon() {
+        return won;
+    }
+
+    public void setWon(boolean won) {
+        this.won = won;
+    }
+
+    public int getScoreChange() {
+        return scoreChange;
+    }
+
+    public void setScoreChange(int scoreChange) {
+        this.scoreChange = scoreChange;
     }
 }
 
