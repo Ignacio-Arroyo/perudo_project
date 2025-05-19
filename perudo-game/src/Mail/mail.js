@@ -5,26 +5,31 @@ import axios from 'axios';
 const MailPage = () => {
     const { user } = useContext(UserContext);
     const [friendRequests, setFriendRequests] = useState([]);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchFriendRequests = async () => {
             try {
-                console.log('User object:', user); // Log the user object to the console
-
                 if (!user) {
-                    console.error('User is undefined');
+                    setError('User is not logged in');
                     return;
                 }
 
-                if (!user.id) {
-                    console.error('user.id is undefined');
+                const userId = user.id || user.playerId;
+                if (!userId) {
+                    setError('No valid user ID found');
+                    console.error('User object is missing ID:', user);
                     return;
                 }
 
-                const response = await axios.get(`/api/friends/requests/${user.id}`);
+                console.log('Fetching friend requests for user:', userId);
+                const response = await axios.get(`/api/friends/requests/${userId}`);
                 setFriendRequests(response.data);
+                setError(null);
             } catch (error) {
-                console.error('Error fetching friend requests:', error);
+                const errorMessage = error.response?.data?.message || 'Error fetching friend requests';
+                setError(errorMessage);
+                console.error('Error:', errorMessage);
             }
         };
 
@@ -64,8 +69,15 @@ const MailPage = () => {
     }
 
     return (
-        <div>
+        <div className="mail-page">
             <h1>Mail</h1>
+            
+            {error && (
+                <div className="error-message">
+                    {error}
+                </div>
+            )}
+
             <div>
                 <h2>Friend Requests</h2>
                 <ul>

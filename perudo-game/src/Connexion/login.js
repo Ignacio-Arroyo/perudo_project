@@ -25,41 +25,29 @@ const Login = () => {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError(null);
+    
     try {
-      const response = await axios.post('http://localhost:8080/api/players/login', {
-        username: formData.username,
-        password: formData.password
-      }, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+        const response = await axios.post('http://localhost:8080/auth/login', {
+            username: formData.username,
+            password: formData.password
+        });
 
-      if (response.status === 200) {
-        console.log('Login successful:', response.data); // Log the user data to verify that it includes the id
-        const userData = response.data;
-        userData.id = userData.player_id; // Ensure the id is included in the user object
-        login(userData);
-        navigate('/home');
-      }
-    } catch (error) {
-      if (error.response) {
-        if (error.response.status === 401) {
-          setError('Invalid username or password.');
-        } else {
-          console.error('Error logging in:', error);
-          setError('An error occurred while logging in.');
+        console.log('Login response:', response.data);
+        
+        if (!response.data || !response.data.id) {
+            throw new Error('Invalid response from server');
         }
-      } else {
+
+        login(response.data);
+        navigate('/home');
+    } catch (error) {
         console.error('Error logging in:', error);
-        setError('An error occurred while logging in.');
-      }
+        setError(error.response?.data?.message || error.message || 'Login failed');
     }
-  };
+};
 
   return (
     <div className='home-middle-section'>
