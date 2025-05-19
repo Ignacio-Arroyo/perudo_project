@@ -1,6 +1,7 @@
 package perudo_backend.perudo_backend;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
@@ -17,6 +18,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Table;
+import jakarta.persistence.OrderColumn;
 
 
 @Entity
@@ -53,6 +55,12 @@ public class Game {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "current_bid_id")
     private Bid currentBid;
+
+    @OneToMany(fetch = FetchType.EAGER)
+    @OrderColumn
+    private List<Player> turnSequence = new ArrayList<>();
+    
+    private int currentTurnIndex = 0;
 
     public Game() {
         this.status = GameStatus.WAITING;
@@ -102,6 +110,7 @@ public class Game {
 
     public void addPlayer(Player player) {
         this.players.add(player);
+        player.setGame(this);
     }
 
     public void removePlayer(Player player) {
@@ -109,21 +118,34 @@ public class Game {
     }
 
     public GameStatus getStatus() { return status; }
-    public void setStatus(GameStatus status) { this.status = status; }
+    public void setStatus(GameStatus status) { this.status = status; }    public Player getCurrentPlayer() { 
+        return currentPlayer; 
+    }
+    
+    public void setCurrentPlayer(Player currentPlayer) { 
+        this.currentPlayer = currentPlayer; 
+    }
 
-    public Player getCurrentPlayer() { return currentPlayer; }
-    public void setCurrentPlayer(Player currentPlayer) { this.currentPlayer = currentPlayer; }
+    public Bid getCurrentBid() { 
+        return currentBid; 
+    }
+    
+    public void setCurrentBid(Bid currentBid) { 
+        this.currentBid = currentBid; 
+    }
 
-    public Bid getCurrentBid() { return currentBid; }
-    public void setCurrentBid(Bid currentBid) { this.currentBid = currentBid; }
-
-    public int getRound() { return round; }
-    public void setRound(int round) { this.round = round; }
+    public int getRound() { 
+        return round; 
+    }
+    
+    public void setRound(int round) { 
+        this.round = round; 
+    }
 
     public void moveToNextPlayer() {
-        int currentIndex = players.indexOf(currentPlayer);
-        int nextIndex = (currentIndex + 1) % players.size();
-        currentPlayer = players.get(nextIndex);
+        if (turnSequence.isEmpty()) return;
+        currentTurnIndex = (currentTurnIndex + 1) % turnSequence.size();
+        currentPlayer = turnSequence.get(currentTurnIndex);
     }
 
     public void setWinner(Player winner) {
@@ -133,5 +155,28 @@ public class Game {
 
     public Player getWinner() {
         return winner;
+    }
+    
+    public void initializeTurnSequence() {
+        if (players.isEmpty()) return;
+        
+        // Create a copy of players list
+        turnSequence = new ArrayList<>(players);
+        // Shuffle the list randomly
+        Collections.shuffle(turnSequence);
+        currentTurnIndex = 0;
+        
+        // Set the first player as current player
+        if (!turnSequence.isEmpty()) {
+            currentPlayer = turnSequence.get(0);
+        }
+    }
+
+    public List<Player> getTurnSequence() {
+        return turnSequence;
+    }
+
+    public void setTurnSequence(List<Player> sequence) {
+        this.turnSequence = sequence;
     }
 }

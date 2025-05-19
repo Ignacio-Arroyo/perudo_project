@@ -113,12 +113,10 @@ public class GameController {
         // Broadcast challenge result and new game state
         messagingTemplate.convertAndSend("/topic/game/" + gameId + "/state", 
             gameState);
-    }
-
-    @MessageMapping("/game/{gameId}/state")
+    }    @MessageMapping("/game/{gameId}/state")
     public void getGameState(@DestinationVariable String gameId, Principal principal) {
         Game game = gameService.getGame(gameId);
-        int playerId = getUserId(principal);
+        String playerId = String.valueOf(getUserId(principal));
         
         messagingTemplate.convertAndSendToUser(
             principal.getName(),

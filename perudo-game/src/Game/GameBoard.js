@@ -13,8 +13,25 @@ const axiosConfig = {
 };
 
 const GameBoard = () => {
-    const { user } = useContext(UserContext);
-    const [gameState, setGameState] = useState(null);
+    const { user } = useContext(UserContext);    const [gameState, setGameState] = useState({
+        id: null,
+        status: 'WAITING',
+        players: [],
+        turnSequence: [], // Ensure this is initialized as an empty array
+        currentPlayer: null,
+        currentBid: null
+    });
+    
+    // Add an effect to handle turn sequence initialization when game starts
+    useEffect(() => {
+        if (gameState.status === 'PLAYING' && (!gameState.turnSequence || !gameState.turnSequence.length) && gameState.players?.length > 0) {
+            console.log('Initializing turn sequence from players:', gameState.players);
+            setGameState(prev => ({
+                ...prev,
+                turnSequence: [...prev.players]
+            }));
+        }
+    }, [gameState.status, gameState.players]);
     const [playerId, setPlayerId] = useState(null);
     const [dice, setDice] = useState([]);
     const [bid, setBid] = useState({ quantity: 1, value: 2 });
@@ -22,6 +39,10 @@ const GameBoard = () => {
     const [error, setError] = useState(null);
     // Add new state for tracking dice rolling status
     const [hasRolled, setHasRolled] = useState(false);
+    const [bidInput, setBidInput] = useState({
+        quantity: 1,
+        value: 2
+    });
 
     useEffect(() => {
         const socket = new SockJS('http://localhost:8080/ws');
@@ -105,11 +126,23 @@ const GameBoard = () => {
                     setDice(diceData.values);
                     setHasRolled(true);
                 }
-            });
-
-            stompClient?.subscribe(`/topic/game/${gameId}/state`, (message) => {
+            });            stompClient?.subscribe(`/topic/game/${gameId}/state`, (message) => {
                 const gameData = JSON.parse(message.body);
-                console.log('Game status:', gameData.status); // Debug log
+                console.log('Full game state update received:', gameData);
+                console.log('Game status:', gameData.status);
+                console.log('Players:', gameData.players);
+                console.log('Turn sequence:', gameData.turnSequence);
+                console.log('Current player:', gameData.currentPlayer);
+                
+                // Debug check for turn sequence initialization
+                if (gameData.status === 'PLAYING' && (!gameData.turnSequence || !Array.isArray(gameData.turnSequence))) {
+                    console.warn('Game is in PLAYING state but turnSequence is not properly initialized:', gameData.turnSequence);
+                    // If players exist but no turn sequence, create one from players array
+                    if (gameData.players && Array.isArray(gameData.players)) {
+                        gameData.turnSequence = [...gameData.players];
+                        console.log('Created turn sequence from players:', gameData.turnSequence);
+                    }
+                }
                 
                 if (gameData.status === 'ERROR') {
                     setError(gameData.errorMessage);
@@ -119,6 +152,7 @@ const GameBoard = () => {
                 if (gameData.status === 'PLAYING') {
                     // Reset roll status when game actually starts
                     setHasRolled(false);
+                    console.log('Game started playing. Turn sequence:', gameData.turnSequence);
                 }
                 
                 setError(null);
@@ -208,12 +242,11 @@ const GameBoard = () => {
                     {error}
                 </div>
             )}
-            
-            {!gameState && (
+              {(!gameState.id || gameState.id === null) && (
                 <button onClick={createGame}>Create New Game</button>
             )}
 
-            {gameState && !playerId && user && (
+            {gameState.id && !playerId && user && (
                 <div className="join-game">
                     <div className="game-id-display">
                         <p>Game ID: {gameState.id}</p>
@@ -247,7 +280,7 @@ const GameBoard = () => {
                     <div className="players">
                         <h3>Players:</h3>
                         <ul>
-                            {gameState.players.map(player => (
+                            {(gameState.players || []).map(player => (
                                 <li key={player.id} className={player.id === playerId ? 'current-player' : ''}>
                                     <div className="player-info">
                                         <span className="player-username">{player.username}</span>
@@ -261,9 +294,9 @@ const GameBoard = () => {
                     {gameState.status === 'WAITING' && (
                         <button 
                             onClick={() => startGame(gameState.id)}
-                            disabled={gameState.players.length < 2}
+                            disabled={!gameState.players || gameState.players.length < 2}
                         >
-                            Start Game ({gameState.players.length}/2 players)
+                            Start Game ({gameState.players ? gameState.players.length : 0}/2 players)
                         </button>
                     )}
 
@@ -281,7 +314,7 @@ const GameBoard = () => {
                                 <p>Waiting for other players to roll...</p>
                             )}
                             <div className="players-status">
-                                {gameState.players.map(player => (
+                                {(gameState.players || []).map(player => (
                                     <div key={player.id} className="player-status">
                                         {player.username}: {player.hasRolled ? '✓ Rolled' : 'Waiting to roll...'}
                                     </div>
@@ -328,6 +361,86 @@ const GameBoard = () => {
                             />
                             <button onClick={() => placeBid(gameState.id, bid)}>Place Bid</button>
                             <button onClick={() => challenge(gameState.id)}>Challenge!</button>
+                        </div>
+                    )}                    {gameState && gameState.status === 'PLAYING' && (
+                        <div className="turn-sequence">
+                            <h3>Turn Order:</h3>
+                            {console.log('Rendering turn sequence:', gameState.turnSequence)}
+                            <div className="player-sequence">
+                                {!gameState.turnSequence ? (
+                                    <p>Establishing turn order...</p>
+                                ) : !Array.isArray(gameState.turnSequence) ? (
+                                    <p>Waiting for turn sequence to be initialized...</p>
+                                ) : gameState.turnSequence.length === 0 ? (
+                                    <p>Waiting for players to be added to turn sequence...</p>
+                                ) : (
+                                    gameState.turnSequence.map((player, index) => (
+                                        <div 
+                                            key={player.id}
+                                            className={`sequence-player ${
+                                                player.id === gameState.currentPlayer?.id ? 'current-turn' : ''
+                                            }`}
+                                        >
+                                            <span className="player-number">{index + 1}</span>
+                                            <span className="player-name">{player.username}</span>
+                                            {player.id === gameState.currentPlayer?.id && (
+                                                <span className="current-marker">🎲</span>
+                                            )}
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+
+                            {gameState.currentPlayer?.id === user?.id && (
+                                <div className="action-controls">
+                                    <div className="bid-form">
+                                        <h4>Place Your Bid</h4>
+                                        <div className="bid-inputs">
+                                            <label>
+                                                Quantity:
+                                                <input
+                                                    type="number"
+                                                    min="1"
+                                                    value={bidInput.quantity}
+                                                    onChange={(e) => setBidInput({
+                                                        ...bidInput,
+                                                        quantity: Math.max(1, parseInt(e.target.value) || 1)
+                                                    })}
+                                                />
+                                            </label>
+                                            <label>
+                                                Value:
+                                                <input
+                                                    type="number"
+                                                    min="1"
+                                                    max="6"
+                                                    value={bidInput.value}
+                                                    onChange={(e) => setBidInput({
+                                                        ...bidInput,
+                                                        value: Math.min(6, Math.max(1, parseInt(e.target.value) || 1))
+                                                    })}
+                                                />
+                                            </label>
+                                        </div>
+                                        <div className="action-buttons">
+                                            <button 
+                                                className="bid-button"
+                                                onClick={() => placeBid(gameState.id, bidInput)}
+                                            >
+                                                Place Bid
+                                            </button>
+                                            {gameState.currentBid && (
+                                                <button 
+                                                    className="challenge-button"
+                                                    onClick={() => challenge(gameState.id)}
+                                                >
+                                                    Challenge Last Bid
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

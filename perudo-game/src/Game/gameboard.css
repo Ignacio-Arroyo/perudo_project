@@ -183,3 +183,94 @@ button:hover {
 .shake {
     animation: shake 0.5s ease-in-out;
 }
+
+.turn-sequence {
+    margin: 2rem 0;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.player-sequence {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    margin: 1rem 0;
+}
+
+.sequence-player {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: white;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+}
+
+.current-turn {
+    background: #e3f2fd;
+    border-color: #90caf9;
+    font-weight: bold;
+}
+
+.player-number {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    text-align: center;
+    background: #007bff;
+    color: white;
+    border-radius: 50%;
+}
+
+.action-controls {
+    margin-top: 2rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.bid-inputs {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin: 1rem 0;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.bid-button, .challenge-button {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.bid-button {
+    background: #28a745;
+    color: white;
+}
+
+.challenge-button {
+    background: #dc3545;
+    color: white;
+}
+
+.bid-button:hover {
+    background: #218838;
+}
+
+.challenge-button:hover {
+    background: #c82333;
+}

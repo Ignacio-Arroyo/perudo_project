@@ -6,6 +6,7 @@ import perudo_backend.exception.GameFullException;
 import perudo_backend.exception.GameNotFoundException;
 import perudo_backend.exception.NotEnoughPlayersException;
 import perudo_backend.exception.NotYourTurnException;
+import perudo_backend.exception.PlayerNotFoundException;
 import perudo_backend.perudo_backend.Bid;
 import perudo_backend.perudo_backend.Game;
 import perudo_backend.perudo_backend.GameStatus;
@@ -78,9 +79,7 @@ public class GameService {
     public GameStateDTO getGameState(String gameId) {
         Game game = findById(gameId);
         return new GameStateDTO(game, null);
-    }
-
-    public GameStateDTO startGame(String gameId) {
+    }    public GameStateDTO startGame(String gameId) {
         Game game = games.get(gameId);
         if (game == null) {
             throw new GameNotFoundException("Game not found: " + gameId);
@@ -90,11 +89,17 @@ public class GameService {
             throw new NotEnoughPlayersException("Not enough players to start the game. Minimum required: 2");
         }
 
+        // Initialize the turn sequence before starting
+        game.initializeTurnSequence();
+        
         // Set initial game state to rolling phase
         game.setStatus(GameStatus.ROLLING);
         
         // Reset all players' roll status
         game.getPlayers().forEach(player -> player.setHasRolled(false));
+
+        log.info("Starting game {}. Turn sequence initialized with {} players", 
+            gameId, game.getTurnSequence().size());
         
         return new GameStateDTO(game);
     }
@@ -107,24 +112,12 @@ public class GameService {
             throw new GameNotFoundException("Game not found: " + gameId);
         }
 
-        // Debug log to see all players and their IDs
-        game.getPlayers().forEach(p -> 
-            log.info("Player in game: ID={}, Username={}", p.getId(), p.getUsername())
-        );
-
-        // Convert player ID comparison to string
         Player player = game.getPlayers().stream()
             .filter(p -> String.valueOf(p.getId()).equals(playerId))
             .findFirst()
             .orElseThrow(() -> {
-                log.error("Player {} not found in game {}. Available players: {}", 
-                    playerId, 
-                    gameId, 
-                    game.getPlayers().stream()
-                        .map(p -> "ID:" + p.getId())
-                        .collect(Collectors.joining(", "))
-                );
-                return new perudo_backend.exception.PlayerNotFoundException("Player not found: " + playerId);
+                log.error("Player {} not found in game {}", playerId, gameId);
+                return new PlayerNotFoundException("Player not found: " + playerId);
             });
 
         // Generate random dice values
@@ -144,12 +137,14 @@ public class GameService {
         boolean allRolled = game.getPlayers().stream().allMatch(Player::getHasRolled);
         if (allRolled) {
             game.setStatus(GameStatus.PLAYING);
-            // Randomly select first player
-            int firstPlayerIndex = random.nextInt(game.getPlayers().size());
-            game.setCurrentPlayer(game.getPlayers().get(firstPlayerIndex));
+            // Initialize turn sequence if not already initialized
+            if (game.getTurnSequence() == null || game.getTurnSequence().isEmpty()) {
+                game.initializeTurnSequence();
+            }
+            log.info("All players rolled. Game {} moving to PLAYING state. Turn sequence initialized.", gameId);
         }
 
-        return new GameStateDTO(game);
+        return new GameStateDTO(game, playerId);
     }
 
     private List<Dice> createDiceForPlayer(int count, Player player) {

@@ -13,26 +13,29 @@ public class GameStateDTO {
     private String currentPlayerId;
     private int round;
     private String errorMessage;
+    private List<GamePlayerDTO> turnSequence;
 
-    public GameStateDTO(Game game, String requestingPlayerId) {  // Changed parameter type to String
+    public GameStateDTO(Game game, String requestingPlayerId) {
         if (game.getGameId() == null) {
             throw new IllegalStateException("Game ID cannot be null");
         }
-        this.id = game.getGameId(); // Use gameId instead of id
+        this.id = game.getGameId();
         this.players = game.getPlayers().stream()
             .map(player -> new GamePlayerDTO(player, 
-                String.valueOf(player.getId()).equals(requestingPlayerId)))  // Fixed comparison
+                String.valueOf(player.getId()).equals(requestingPlayerId)))
             .collect(Collectors.toList());
         this.currentBid = game.getCurrentBid() != null ? new BidDTO(game.getCurrentBid()) : null;
         this.currentPlayerId = game.getCurrentPlayer() != null ? 
             String.valueOf(game.getCurrentPlayer().getId()) : null;
         this.round = game.getRound();
         this.status = game.getStatus();
-    }
-
-    // Update other constructors to be consistent
-    public GameStateDTO(Game game, Object object) {  // This can be removed if not needed
-        this(game, (String)null);  // Call main constructor with null requestingPlayerId
+        
+        if (game.getTurnSequence() != null) {
+            this.turnSequence = game.getTurnSequence().stream()
+                .map(player -> new GamePlayerDTO(player, 
+                    String.valueOf(player.getId()).equals(requestingPlayerId)))
+                .collect(Collectors.toList());
+        }
     }
 
     public GameStateDTO(Game game) {
@@ -52,6 +55,12 @@ public class GameStateDTO {
             String.valueOf(game.getCurrentPlayer().getId()) : null;
         this.round = game.getRound();
         this.status = game.getStatus();
+        
+        if (game.getTurnSequence() != null) {
+            this.turnSequence = game.getTurnSequence().stream()
+                .map(player -> new GamePlayerDTO(player, false))
+                .collect(Collectors.toList());
+        }
     }
 
     // Add new constructor for error states
@@ -91,7 +100,6 @@ public class GameStateDTO {
     public GameStatus getStatus() { return status; }
     public void setStatus(GameStatus status) { this.status = status; }
 
-    // Add getters and setters for errorMessage
     public String getErrorMessage() {
         return errorMessage;
     }
@@ -100,6 +108,9 @@ public class GameStateDTO {
         this.errorMessage = errorMessage;
     }
 
+    public List<GamePlayerDTO> getTurnSequence() { return turnSequence; }
+    public void setTurnSequence(List<GamePlayerDTO> turnSequence) { this.turnSequence = turnSequence; }
+
     // Add toString for debugging
     @Override
     public String toString() {
@@ -107,6 +118,8 @@ public class GameStateDTO {
             "id='" + id + '\'' +
             ", status=" + status +
             ", players=" + players +
+            ", currentPlayerId='" + currentPlayerId + '\'' +
+            ", round=" + round +
             '}';
     }
 }
