@@ -44,8 +44,9 @@ function App() {
             <Route path="/update-player-coins" element={<UpdatePlayerCoinsPage />} />
             <Route path="/friends" element={<FriendsPage />} />
             <Route path="/mail" element={<MailPage />} />
+            <Route path="/game/board" element={<GameBoard />} />
             {/* <Route path="/statistics" element={<Statistics />} /> */}
-          </Routes>
+          </Routes> 
           <Footer  />
         </div>
       </Router>

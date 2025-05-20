@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
-import { UserContext } from '../Auth/UserContext';
+import { useAuth } from '../Auth/authcontext';
 import './gameboard.css';
 
 const axiosConfig = {
@@ -13,7 +13,7 @@ const axiosConfig = {
 };
 
 const GameBoard = () => {
-    const { user } = useContext(UserContext);    const [gameState, setGameState] = useState({
+    const { user } = useAuth();    const [gameState, setGameState] = useState({
         id: null,
         status: 'WAITING',
         players: [],

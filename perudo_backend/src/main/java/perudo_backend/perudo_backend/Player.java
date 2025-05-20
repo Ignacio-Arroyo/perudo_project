@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.ArrayList;
+import perudo_backend.perudo_backend.Product;
 
 @Entity
 @Table(name = "players")
@@ -47,13 +48,24 @@ public class Player {
     @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GameRecord> gameRecords = new ArrayList<>();
 
+    // --- AJOUTS POUR COMPATIBILITÉ ---
+    private int pieces;
+    private int trophies;
+    @OneToMany
+    private List<Product> inventory = new ArrayList<>();
+    private Integer equippedProduct;
+    // --- existing code ...
+
     // Constructors
     public Player() {
         this.pieces = 2000;
+        this.trophies = 0;
         this.winRate = 0;
         this.dice = new ArrayList<>();
         this.friends = new ArrayList<>();
         this.gameRecords = new ArrayList<>();
+        this.inventory = new ArrayList<>();
+        this.equippedProduct = null;
     }
 
     public Player(String nom, String prenom, String username, String password) {
@@ -263,4 +275,21 @@ public class Player {
         this.dice.remove(dice);
         dice.setPlayer(null);
     }
+
+    // Getter/setter pour pieces
+    public int getPieces() { return pieces; }
+    public void setPieces(int pieces) { this.pieces = pieces; }
+
+    // Getter/setter pour trophies
+    public int getTrophies() { return trophies; }
+    public void setTrophies(int trophies) { this.trophies = trophies; }
+    public void addTrophies(int amount) { this.trophies += amount; }
+
+    // Getter/setter pour inventory
+    public List<Product> getInventory() { return inventory; }
+    public void setInventory(List<Product> inventory) { this.inventory = inventory; }
+
+    // Getter/setter pour equippedProduct
+    public Integer getEquippedProduct() { return equippedProduct; }
+    public void setEquippedProduct(Integer equippedProduct) { this.equippedProduct = equippedProduct; }
 }
