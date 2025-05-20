@@ -91,12 +91,32 @@ public class GameController {
 
     @MessageMapping("/game/{gameId}/bid")
     public void makeBid(@DestinationVariable String gameId, BidRequest request) {
-        GameStateDTO gameState = gameService.processBid(gameId, String.valueOf(request.getPlayerId()), 
-            request.getQuantity(), request.getValue());
+        log.info("Processing bid via WebSocket: gameId={}, playerId={}, quantity={}, value={}",
+            gameId, request.getPlayerId(), request.getQuantity(), request.getValue());
             
-        // Broadcast new game state
-        messagingTemplate.convertAndSend("/topic/game/" + gameId + "/state", 
-            gameState);
+        try {
+            GameStateDTO gameState = gameService.processBid(gameId, String.valueOf(request.getPlayerId()), 
+                request.getQuantity(), request.getValue());
+                
+            // Log détaillé de l'état du jeu après la mise
+            log.info("After bid: gameId={}, currentPlayerId={}, players={}, turnSequence={}",
+                gameId, gameState.getCurrentPlayerId(),
+                gameState.getPlayers() != null ? gameState.getPlayers().size() : 0,
+                gameState.getTurnSequence() != null ? gameState.getTurnSequence().size() : 0);
+                
+            // Broadcast new game state
+            messagingTemplate.convertAndSend("/topic/game/" + gameId + "/state", gameState);
+            
+            log.info("Game state broadcasted after bid");
+        } catch (Exception e) {
+            log.error("Error processing bid: ", e);
+            GameStateDTO errorState = new GameStateDTO(
+                gameId,
+                GameStatus.ERROR,
+                e.getMessage()
+            );
+            messagingTemplate.convertAndSend("/topic/game/" + gameId + "/state", errorState);
+        }
     }
 
     @PostMapping("/{gameId}/players/{playerId}/challenge")
@@ -185,5 +205,17 @@ public class GameController {
         // Implementation depends on your authentication system
         // This is a placeholder - implement according to your needs
         return Integer.parseInt(principal.getName());
+    }
+
+    // Ajouter un endpoint de diagnostic
+    @GetMapping("/{gameId}/debug")
+    public ResponseEntity<String> debugGame(@PathVariable String gameId) {
+        try {
+            String debugInfo = gameService.debugGameState(gameId);
+            return ResponseEntity.ok(debugInfo);
+        } catch (Exception e) {
+            log.error("Error getting debug info for game {}: {}", gameId, e.getMessage(), e);
+            return ResponseEntity.status(500).body("Error: " + e.getMessage());
+        }
     }
 }

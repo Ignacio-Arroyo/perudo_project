@@ -40,7 +40,6 @@ public class Game {
     @Enumerated(EnumType.STRING)
     private GameStatus status;
 
-    // Add the player field to match the mapping in Player entity
     @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Player> players = new ArrayList<>();
 
@@ -65,9 +64,11 @@ public class Game {
     public Game() {
         this.status = GameStatus.WAITING;
         this.round = 0;
+        this.players = new ArrayList<>();
+        this.turnSequence = new ArrayList<>();
     }
 
-    // Fix the ID getters/setters
+    // Getters et Setters de base
     public Long getId() {
         return id;
     }
@@ -108,21 +109,23 @@ public class Game {
         this.players = players;
     }
 
-    public void addPlayer(Player player) {
-        this.players.add(player);
-        player.setGame(this);
+    public GameStatus getStatus() { 
+        return status; 
     }
-
-    public void removePlayer(Player player) {
-        this.players.remove(player);
-    }
-
-    public GameStatus getStatus() { return status; }
-    public void setStatus(GameStatus status) { this.status = status; }    public Player getCurrentPlayer() { 
+    
+    public void setStatus(GameStatus status) { 
+        this.status = status; 
+    }    
+    
+    public Player getCurrentPlayer() { 
         return currentPlayer; 
     }
     
     public void setCurrentPlayer(Player currentPlayer) { 
+        // Mettre à jour l'attribut currentTurn pour chaque joueur
+        for (Player p : players) {
+            p.setCurrentTurn(p.equals(currentPlayer));
+        }
         this.currentPlayer = currentPlayer; 
     }
 
@@ -142,34 +145,8 @@ public class Game {
         this.round = round; 
     }
 
-    public void moveToNextPlayer() {
-        if (turnSequence.isEmpty()) return;
-        currentTurnIndex = (currentTurnIndex + 1) % turnSequence.size();
-        currentPlayer = turnSequence.get(currentTurnIndex);
-    }
-
-    public void setWinner(Player winner) {
-        this.winner = winner;
-        this.status = GameStatus.FINISHED;
-    }
-
     public Player getWinner() {
         return winner;
-    }
-    
-    public void initializeTurnSequence() {
-        if (players.isEmpty()) return;
-        
-        // Create a copy of players list
-        turnSequence = new ArrayList<>(players);
-        // Shuffle the list randomly
-        Collections.shuffle(turnSequence);
-        currentTurnIndex = 0;
-        
-        // Set the first player as current player
-        if (!turnSequence.isEmpty()) {
-            currentPlayer = turnSequence.get(0);
-        }
     }
 
     public List<Player> getTurnSequence() {
@@ -178,5 +155,78 @@ public class Game {
 
     public void setTurnSequence(List<Player> sequence) {
         this.turnSequence = sequence;
+    }
+
+    // Méthodes de gestion des joueurs
+    public void addPlayer(Player player) {
+        this.players.add(player);
+        player.setGame(this);
+    }
+
+    public void removePlayer(Player player) {
+        boolean wasCurrentPlayer = player.equals(currentPlayer);
+        this.players.remove(player);
+        this.turnSequence.remove(player);
+        player.setCurrentTurn(false);
+        
+        // Si c'était le joueur actuel, on passe au joueur suivant
+        if (wasCurrentPlayer && !turnSequence.isEmpty()) {
+            moveToNextPlayer();
+        }
+    }
+
+    // Méthodes de gestion des tours
+    public void initializeTurnSequence() {
+        // Réinitialiser l'état de tous les joueurs
+        for (Player p : players) {
+            p.setCurrentTurn(false);
+        }
+        
+        // Créer une séquence de tour avec tous les joueurs et la mélanger
+        turnSequence = new ArrayList<>(players);
+        Collections.shuffle(turnSequence);
+        
+        // Réinitialiser l'index de tour et définir le joueur actuel
+        currentTurnIndex = 0;
+        if (!turnSequence.isEmpty()) {
+            currentPlayer = turnSequence.get(0);
+            currentPlayer.setCurrentTurn(true);
+        }
+    }
+
+    public void moveToNextPlayer() {
+        // Si pas de joueurs ou séquence vide, on ne fait rien
+        if (turnSequence.isEmpty()) {
+            return;
+        }
+        
+        // Désactiver le tour du joueur actuel
+        if (currentPlayer != null) {
+            currentPlayer.setCurrentTurn(false);
+        }
+        
+        // Passer au joueur suivant
+        currentTurnIndex = (currentTurnIndex + 1) % turnSequence.size();
+        currentPlayer = turnSequence.get(currentTurnIndex);
+        
+        // Activer le tour du nouveau joueur actuel
+        if (currentPlayer != null) {
+            currentPlayer.setCurrentTurn(true);
+        }
+    }
+
+    public void setWinner(Player winner) {
+        // Désactiver le tour pour tous les joueurs
+        for (Player p : players) {
+            p.setCurrentTurn(false);
+        }
+        
+        this.winner = winner;
+        this.status = GameStatus.FINISHED;
+        
+        // Optionnel: activer le tour pour le gagnant
+        if (winner != null) {
+            winner.setCurrentTurn(true);
+        }
     }
 }

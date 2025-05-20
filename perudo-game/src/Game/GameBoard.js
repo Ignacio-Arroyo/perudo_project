@@ -132,25 +132,24 @@ const GameBoard = () => {
                 console.log('Game status:', gameData.status);
                 console.log('Players:', gameData.players);
                 console.log('Turn sequence:', gameData.turnSequence);
-                console.log('Current player:', gameData.currentPlayer);
+                console.log('Current player ID from backend:', gameData.currentPlayerId);
 
                 // Handle game state changes
                 if (gameData.status === 'PLAYING' && gameData.players?.length > 0) {
-                    // Initialize turn sequence and current player if not set
-                    if (!gameData.turnSequence || gameData.turnSequence.length === 0) {
-                        gameData.turnSequence = [...gameData.players];
-                        console.log('Created turn sequence:', gameData.turnSequence);
+                    // Initialize turn sequence if not set (can still be useful if backend doesn't always send it)
+                    if ((!gameData.turnSequence || gameData.turnSequence.length === 0) && gameData.players && Array.isArray(gameData.players)) {
+                        // This part might still be needed if turnSequence isn't always in gameData
+                        // but ensure it doesn't overwrite a valid turnSequence from backend.
+                        // For now, let's assume backend sends it.
+                        // gameData.turnSequence = [...gameData.players]; 
+                        // console.log('Created turn sequence from players:', gameData.turnSequence);
                     }
                     
-                    if (!gameData.currentPlayer && gameData.turnSequence.length > 0) {
-                        gameData.currentPlayer = gameData.turnSequence[0];
-                        console.log('Set initial current player:', gameData.currentPlayer);
-                    }
-                    // If players exist but no turn sequence, create one from players array
-                    if (gameData.players && Array.isArray(gameData.players)) {
-                        gameData.turnSequence = [...gameData.players];
-                        console.log('Created turn sequence from players:', gameData.turnSequence);
-                    }
+                    // DO NOT set gameData.currentPlayer here. Rely on gameData.currentPlayerId
+                    // if (!gameData.currentPlayer && gameData.turnSequence.length > 0) { 
+                    //     gameData.currentPlayer = gameData.turnSequence[0];
+                    //     console.log('Set initial current player:', gameData.currentPlayer);
+                    // }
                 }
                 
                 if (gameData.status === 'ERROR') {
@@ -159,13 +158,12 @@ const GameBoard = () => {
                 }
                 
                 if (gameData.status === 'PLAYING') {
-                    // Reset roll status when game actually starts
                     setHasRolled(false);
-                    console.log('Game started playing. Turn sequence:', gameData.turnSequence);
+                    // console.log('Game started playing. Turn sequence:', gameData.turnSequence); // Already logged above
                 }
                 
                 setError(null);
-                setGameState(gameData);
+                setGameState(gameData); // This will update gameState.currentPlayerId
             });
         } catch (error) {
             console.error('Join error:', error.response?.data || error);
@@ -193,7 +191,7 @@ const GameBoard = () => {
             stompClient.send(`/app/game/${gameId}/bid`, {}, 
                 JSON.stringify({
                     gameId,
-                    playerId,
+                    playerId: user.id,
                     quantity: bid.quantity,
                     value: bid.value
                 })
@@ -206,7 +204,7 @@ const GameBoard = () => {
             stompClient.send(`/app/game/${gameId}/challenge`, {}, 
                 JSON.stringify({
                     gameId,
-                    playerId
+                    playerId: user.id
                 })
             );
         }
@@ -353,25 +351,7 @@ const GameBoard = () => {
                         </div>
                     )}
 
-                    {gameState.currentPlayer?.id === playerId && (
-                        <div className="bid-controls">
-                            <input 
-                                type="number" 
-                                value={bid.quantity}
-                                onChange={(e) => setBid({...bid, quantity: parseInt(e.target.value)})}
-                                min="1"
-                            />
-                            <input 
-                                type="number" 
-                                value={bid.value}
-                                onChange={(e) => setBid({...bid, value: parseInt(e.target.value)})}
-                                min="1"
-                                max="6"
-                            />
-                            <button onClick={() => placeBid(gameState.id, bid)}>Place Bid</button>
-                            <button onClick={() => challenge(gameState.id)}>Challenge!</button>
-                        </div>
-                    )}                    {gameState && gameState.status === 'PLAYING' && (
+                    {gameState && gameState.status === 'PLAYING' && (
                         <div className="turn-sequence">
                             <h3>Turn Order:</h3>                            <div className="player-sequence">
                                 {!gameState.turnSequence ? (
@@ -401,7 +381,18 @@ const GameBoard = () => {
                                     })
                                 )}
                             </div>                            {/* Show action controls when it's the player's turn and game is in PLAYING state */}
-                            {gameState.status === 'PLAYING' && String(gameState.currentPlayer?.id) === String(user?.id) && (
+                            {gameState.status === 'PLAYING' && (() => {
+                                // Use gameState.currentPlayerId directly from the state updated by backend message
+                                const isCurrentUserTurn = String(gameState.currentPlayerId) === String(user?.id);
+                                console.log('Checking turn for rendering buttons:', {
+                                    currentPlayerIdFromState: gameState.currentPlayerId, // Use the ID from state
+                                    loggedInUserId: user?.id,
+                                    isTurn: isCurrentUserTurn,
+                                    typeOfCurrentPlayerId: typeof gameState.currentPlayerId,
+                                    typeOfLoggedInUserId: typeof user?.id
+                                });
+                                return isCurrentUserTurn;
+                            })() && (
                                 <div className="action-controls">
                                     <div className="bid-form">
                                         <h4>Your Turn - Place Your Bid</h4>

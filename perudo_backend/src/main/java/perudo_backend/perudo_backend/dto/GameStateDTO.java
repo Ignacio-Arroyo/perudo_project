@@ -4,8 +4,12 @@ import perudo_backend.perudo_backend.Game;
 import perudo_backend.perudo_backend.GameStatus;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GameStateDTO {
+    private static final Logger log = LoggerFactory.getLogger(GameStateDTO.class);
+    
     private String id; // This will store the gameId
     private GameStatus status;
     private List<GamePlayerDTO> players;
@@ -20,22 +24,39 @@ public class GameStateDTO {
             throw new IllegalStateException("Game ID cannot be null");
         }
         this.id = game.getGameId();
+        
+        // Créer les DTOs des joueurs avec indication si c'est leur tour
         this.players = game.getPlayers().stream()
-            .map(player -> new GamePlayerDTO(player, 
-                String.valueOf(player.getId()).equals(requestingPlayerId)))
+            .map(player -> new GamePlayerDTO(player, String.valueOf(player.getId()).equals(requestingPlayerId)))
             .collect(Collectors.toList());
+            
+        // Transmission de l'objet Bid
         this.currentBid = game.getCurrentBid() != null ? new BidDTO(game.getCurrentBid()) : null;
-        this.currentPlayerId = game.getCurrentPlayer() != null ? 
-            String.valueOf(game.getCurrentPlayer().getId()) : null;
+        
+        // Transmission de l'ID du joueur actuel (s'il existe)
+        if (game.getCurrentPlayer() != null) {
+            this.currentPlayerId = String.valueOf(game.getCurrentPlayer().getId());
+            log.debug("Setting currentPlayerId to: {}", this.currentPlayerId);
+        } else {
+            this.currentPlayerId = null;
+            log.debug("No current player set");
+        }
+        
         this.round = game.getRound();
         this.status = game.getStatus();
         
+        // Mapping de la séquence de tour
         if (game.getTurnSequence() != null) {
             this.turnSequence = game.getTurnSequence().stream()
-                .map(player -> new GamePlayerDTO(player, 
-                    String.valueOf(player.getId()).equals(requestingPlayerId)))
+                .map(player -> new GamePlayerDTO(player, String.valueOf(player.getId()).equals(requestingPlayerId)))
                 .collect(Collectors.toList());
+            log.debug("Turn sequence has {} players", this.turnSequence.size());
+        } else {
+            log.debug("No turn sequence found");
         }
+        
+        // Log pour débogage
+        logGameState();
     }
 
     public GameStateDTO(Game game) {
@@ -50,17 +71,34 @@ public class GameStateDTO {
         this.players = game.getPlayers().stream()
             .map(player -> new GamePlayerDTO(player, false))
             .collect(Collectors.toList());
+            
+        // Transmission de l'objet Bid
         this.currentBid = game.getCurrentBid() != null ? new BidDTO(game.getCurrentBid()) : null;
-        this.currentPlayerId = game.getCurrentPlayer() != null ? 
-            String.valueOf(game.getCurrentPlayer().getId()) : null;
+        
+        // Transmission de l'ID du joueur actuel (s'il existe)
+        if (game.getCurrentPlayer() != null) {
+            this.currentPlayerId = String.valueOf(game.getCurrentPlayer().getId());
+            log.debug("Setting currentPlayerId to: {}", this.currentPlayerId);
+        } else {
+            this.currentPlayerId = null;
+            log.debug("No current player set");
+        }
+        
         this.round = game.getRound();
         this.status = game.getStatus();
         
+        // Mapping de la séquence de tour
         if (game.getTurnSequence() != null) {
             this.turnSequence = game.getTurnSequence().stream()
                 .map(player -> new GamePlayerDTO(player, false))
                 .collect(Collectors.toList());
+            log.debug("Turn sequence has {} players", this.turnSequence.size());
+        } else {
+            log.debug("No turn sequence found");
         }
+        
+        // Log pour débogage
+        logGameState();
     }
 
     // Add new constructor for error states
@@ -72,6 +110,29 @@ public class GameStateDTO {
 
     // Default constructor
     public GameStateDTO() {
+    }
+
+    private void logGameState() {
+        log.debug("GameStateDTO created: id={}, status={}, currentPlayerId={}, players={}, turnSequence={}",
+            this.id, this.status, this.currentPlayerId,
+            this.players != null ? this.players.size() : 0,
+            this.turnSequence != null ? this.turnSequence.size() : 0);
+            
+        if (this.players != null) {
+            for (GamePlayerDTO player : this.players) {
+                log.debug("Player: id={}, username={}, currentTurn={}", 
+                    player.getId(), player.getUsername(), player.isCurrentTurn());
+            }
+        }
+        
+        if (this.turnSequence != null) {
+            log.debug("Turn sequence:");
+            for (int i = 0; i < this.turnSequence.size(); i++) {
+                GamePlayerDTO player = this.turnSequence.get(i);
+                log.debug("  {}: id={}, username={}, currentTurn={}", 
+                    i, player.getId(), player.getUsername(), player.isCurrentTurn());
+            }
+        }
     }
 
     public String getId() {
@@ -117,8 +178,9 @@ public class GameStateDTO {
         return "GameStateDTO{" +
             "id='" + id + '\'' +
             ", status=" + status +
-            ", players=" + players +
             ", currentPlayerId='" + currentPlayerId + '\'' +
+            ", players=" + (players != null ? players.size() : 0) +
+            ", turnSequence=" + (turnSequence != null ? turnSequence.size() : 0) +
             ", round=" + round +
             '}';
     }

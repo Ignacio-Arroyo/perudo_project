@@ -5,8 +5,12 @@ import perudo_backend.perudo_backend.Dice;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GamePlayerDTO {
+    private static final Logger log = LoggerFactory.getLogger(GamePlayerDTO.class);
+    
     private String id;
     private String username;
     private List<Integer> dice;
@@ -19,18 +23,18 @@ public class GamePlayerDTO {
         this.dice = player.getDice().stream()
             .map(Dice::getValue)
             .collect(Collectors.toList());
+            
+        // Récupérer et définir clairement si c'est le tour de ce joueur
         this.currentTurn = player.isCurrentTurn();
         this.isCurrentPlayer = isCurrentPlayer;
+        
+        // Ajouter un log pour le debug
+        log.debug("Created GamePlayerDTO - Player ID: {}, Username: {}, currentTurn: {}, isCurrentPlayer: {}", 
+            this.id, this.username, this.currentTurn, this.isCurrentPlayer);
     }
 
     public GamePlayerDTO(Player player) {
-        this.id = String.valueOf(player.getId());
-        this.username = player.getUsername();
-        this.dice = player.getDice().stream()
-            .map(Dice::getValue)
-            .collect(Collectors.toList());
-        this.currentTurn = player.isCurrentTurn();
-        this.isCurrentPlayer = false;
+        this(player, false);
     }
 
     // Getters and setters
@@ -72,5 +76,16 @@ public class GamePlayerDTO {
 
     public void setCurrentPlayer(boolean currentPlayer) {
         isCurrentPlayer = currentPlayer;
+    }
+    
+    @Override
+    public String toString() {
+        return "GamePlayerDTO{" +
+                "id='" + id + '\'' +
+                ", username='" + username + '\'' +
+                ", dice=" + dice +
+                ", currentTurn=" + currentTurn +
+                ", isCurrentPlayer=" + isCurrentPlayer +
+                '}';
     }
 }

@@ -60,7 +60,7 @@ public class GameService {
         return dto;
     }
 
-    public GameStateDTO joinGame(String gameId, String playerId) {
+    public GameStateDTO joinGame(String gameId, String playerIdStr) {
         Game game = games.get(gameId);
         if (game == null) {
             throw new GameNotFoundException(gameId);
@@ -70,81 +70,107 @@ public class GameService {
             throw new GameFullException();
         }
 
+        Long pId;
+        try {
+            pId = Long.parseLong(playerIdStr);
+        } catch (NumberFormatException e) {
+            log.error("Invalid player ID format: {}", playerIdStr, e);
+            throw new IllegalArgumentException("Invalid player ID format: " + playerIdStr);
+        }
+
+        // Vérifier si un joueur avec cet ID est déjà dans la partie
+        boolean alreadyJoined = game.getPlayers().stream()
+                                    .anyMatch(p -> p.getId() != null && p.getId().equals(pId));
+        if (alreadyJoined) {
+            log.warn("Player with ID {} is already in game {}. Not adding again.", pId, gameId);
+            // Renvoyer l'état actuel sans ajouter le joueur à nouveau
+            return new GameStateDTO(game, playerIdStr);
+        }
+
+        // Créer un nouveau joueur avec un nom d'utilisateur défini
         Player player = new Player();
-        player.setId(Long.parseLong(playerId));
+        player.setId(pId);
+        player.setUsername("Player " + pId); // Définir un nom d'utilisateur par défaut
+
+        log.info("Adding player to game: ID={}, Username={}", pId, player.getUsername());
+        
+        // Ajouter le joueur au jeu
         game.addPlayer(player);
-        return new GameStateDTO(game, playerId);
+        
+        // Loguer l'état du jeu après ajout
+        log.info("Game state after player joined: ID={}, Players={}, CurrentPlayer={}", 
+            gameId, 
+            game.getPlayers().size(),
+            game.getCurrentPlayer() != null ? game.getCurrentPlayer().getId() : "none");
+            
+        return new GameStateDTO(game, playerIdStr);
     }
 
     public GameStateDTO getGameState(String gameId) {
         Game game = findById(gameId);
         return new GameStateDTO(game, null);
-    }    public GameStateDTO startGame(String gameId) {
-        Game game = games.get(gameId);
-        if (game == null) {
-            throw new GameNotFoundException("Game not found: " + gameId);
-        }
+    }
+
+    public GameStateDTO startGame(String gameId) {
+        Game game = findById(gameId);
 
         if (game.getPlayers().size() < 2) {
             throw new NotEnoughPlayersException("Not enough players to start the game. Minimum required: 2");
         }
 
-        // Initialize the turn sequence before starting
         game.initializeTurnSequence();
-        
-        // Set initial game state to rolling phase
+        log.info("Game {} started. Initial turn sequence: {}", gameId, 
+            game.getTurnSequence().stream().map(p -> p.getId() + "(" + p.getUsername() + ")").collect(Collectors.toList()));
+        log.info("Current player after init: {}", game.getCurrentPlayer() != null ? game.getCurrentPlayer().getId() + "(" + game.getCurrentPlayer().getUsername() + ")" : "null");
+
         game.setStatus(GameStatus.ROLLING);
-        
-        // Reset all players' roll status
         game.getPlayers().forEach(player -> player.setHasRolled(false));
 
-        log.info("Starting game {}. Turn sequence initialized with {} players", 
-            gameId, game.getTurnSequence().size());
+        log.info("Game {} status set to ROLLING. Players reset for rolling.", gameId);
         
-        return new GameStateDTO(game);
+        GameStateDTO gameState = new GameStateDTO(game);
+        log.info("startGame returning GameStateDTO with currentPlayerId: {}", gameState.getCurrentPlayerId());
+        return gameState;
     }
 
-    public GameStateDTO handleRoll(String gameId, String playerId) {
-        log.info("Handling roll for game: {} and player: {}", gameId, playerId);
-        
-        Game game = games.get(gameId);
-        if (game == null) {
-            throw new GameNotFoundException("Game not found: " + gameId);
-        }
+    public GameStateDTO handleRoll(String gameId, String playerIdStr) {
+        log.info("Handling roll for game: {} and player: {}", gameId, playerIdStr);
+        Game game = findById(gameId);
+        Long pId = Long.parseLong(playerIdStr);
 
         Player player = game.getPlayers().stream()
-            .filter(p -> String.valueOf(p.getId()).equals(playerId))
+            .filter(p -> p.getId().equals(pId))
             .findFirst()
-            .orElseThrow(() -> {
-                log.error("Player {} not found in game {}", playerId, gameId);
-                return new PlayerNotFoundException("Player not found: " + playerId);
-            });
+            .orElseThrow(() -> new PlayerNotFoundException("Player not found: " + playerIdStr));
 
-        // Generate random dice values
-        Random random = new Random();
+        // Simuler un lancer de dés (chaque joueur commence avec STARTING_DICE)
         List<Dice> newDice = new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            Dice dice = new Dice();
+        Random random = new Random();
+        int numDiceForPlayer = player.getDiceCount() > 0 ? player.getDiceCount() : STARTING_DICE;
+        for (int i = 0; i < numDiceForPlayer; i++) {
+            Dice dice = new Dice(); // Assurez-vous que la classe Dice est bien disponible et instanciable
             dice.setValue(random.nextInt(6) + 1);
-            dice.setPlayer(player);
+            // dice.setPlayer(player); // La relation est souvent gérée par JPA ou manuellement si besoin
             newDice.add(dice);
         }
-        
         player.setDice(newDice);
         player.setHasRolled(true);
+        log.info("Player {} in game {} rolled {} dice: {}", playerIdStr, gameId, numDiceForPlayer, newDice.stream().map(Dice::getValue).collect(Collectors.toList()));
 
-        // Check if all players have rolled
         boolean allRolled = game.getPlayers().stream().allMatch(Player::getHasRolled);
         if (allRolled) {
             game.setStatus(GameStatus.PLAYING);
-            // Initialize turn sequence if not already initialized
-            if (game.getTurnSequence() == null || game.getTurnSequence().isEmpty()) {
-                game.initializeTurnSequence();
+            log.info("All players in game {} have rolled. Game status set to PLAYING.", gameId);
+            // Il est crucial que currentPlayer soit défini ici si ce n'est pas déjà fait par initializeTurnSequence.
+            // Normalement, initializeTurnSequence dans startGame l'a déjà fait.
+            if (game.getCurrentPlayer() == null && !game.getTurnSequence().isEmpty()) {
+                game.setCurrentPlayer(game.getTurnSequence().get(0));
+                 log.warn("Current player was null after all rolled, set to first in turn sequence: {}", game.getCurrentPlayer().getId());
             }
-            log.info("All players rolled. Game {} moving to PLAYING state. Turn sequence initialized.", gameId);
         }
-
-        return new GameStateDTO(game, playerId);
+        GameStateDTO gameState = new GameStateDTO(game, playerIdStr);
+        log.info("handleRoll returning GameStateDTO with currentPlayerId: {}", gameState.getCurrentPlayerId());
+        return gameState;
     }
 
     private List<Dice> createDiceForPlayer(int count, Player player) {
@@ -177,22 +203,62 @@ public class GameService {
 
     public GameStateDTO processBid(String gameId, String playerId, int quantity, int value) {
         Game game = findById(gameId);
-        Player currentPlayer = game.getCurrentPlayer();
-        
-        if (currentPlayer == null) {
-            throw new IllegalStateException("No current player set for game: " + gameId);
-        }
+        Player placingPlayer = game.getPlayers().stream()
+                                 .filter(p -> String.valueOf(p.getId()).equals(playerId))
+                                 .findFirst()
+                                 .orElseThrow(() -> new PlayerNotFoundException("Player " + playerId + " not found in game " + gameId));
 
-        if (!String.valueOf(currentPlayer.getId()).equals(playerId)) {  // Use playerId instead of id
+        log.info("processBid: Game: {}, Player making bid: {} ({}), Current game player: {} ({})", 
+            gameId, placingPlayer.getId(), placingPlayer.getUsername(),
+            game.getCurrentPlayer() != null ? game.getCurrentPlayer().getId() : "null",
+            game.getCurrentPlayer() != null ? game.getCurrentPlayer().getUsername() : "null");
+
+        if (game.getCurrentPlayer() == null || !game.getCurrentPlayer().getId().equals(placingPlayer.getId())) {
+            log.error("Not player's turn. Current: {}, Attempted: {}", 
+                game.getCurrentPlayer() != null ? game.getCurrentPlayer().getId() : "null", playerId);
             throw new NotYourTurnException();
         }
 
-        // Update game state with new bid
+        Bid previousBid = game.getCurrentBid();
+        if (!validateBid(previousBid, quantity, value)) {
+            throw new IllegalArgumentException("Mise invalide : elle doit être strictement supérieure à la précédente (quantité ou valeur), ou valeur entre 1 et 6." );
+        }
+
         Bid bid = new Bid(playerId, quantity, value);
         game.setCurrentBid(bid);
-        game.moveToNextPlayer();
+        log.info("Player {} ({}) placed bid: {}x{}. Current player before moveToNextPlayer: {} ({})", 
+            placingPlayer.getId(), placingPlayer.getUsername(), quantity, value, 
+            game.getCurrentPlayer().getId(), game.getCurrentPlayer().getUsername());
 
-        return new GameStateDTO(game, playerId);
+        game.moveToNextPlayer();
+        log.info("After moveToNextPlayer. New current player: {} ({})", 
+            game.getCurrentPlayer() != null ? game.getCurrentPlayer().getId() : "null",
+            game.getCurrentPlayer() != null ? game.getCurrentPlayer().getUsername() : "null");
+            
+        GameStateDTO gameState = new GameStateDTO(game, playerId);
+        log.info("processBid returning GameStateDTO with currentPlayerId: {}", gameState.getCurrentPlayerId());
+        return gameState;
+    }
+
+    /**
+     * Valide la mise selon les règles classiques du Perudo :
+     * - Si pas de mise précédente, toute mise est valide
+     * - Sinon, la nouvelle mise doit être strictement supérieure à la précédente
+     *   (soit quantité supérieure, soit même quantité mais valeur supérieure)
+     */
+    private boolean validateBid(Bid previousBid, int newQuantity, int newValue) {
+        if (previousBid == null) {
+            return true; // Première mise toujours valide
+        }
+        int prevQuantity = previousBid.getQuantity();
+        int prevValue = previousBid.getValue();
+        // La nouvelle mise doit être strictement supérieure
+        if (newQuantity > prevQuantity) {
+            return true;
+        } else if (newQuantity == prevQuantity && newValue > prevValue) {
+            return true;
+        }
+        return false;
     }
 
     public GameStateDTO processChallenge(String gameId, String playerId) {
@@ -284,17 +350,27 @@ public class GameService {
 
         // Check if player is eliminated
         if (currentDice == null || currentDice.isEmpty()) {
-            game.getPlayers().remove(losingPlayer);
+            // Utiliser la méthode removePlayer de l'objet Game pour assurer la cohérence de la turnSequence
+            game.removePlayer(losingPlayer);
+            log.info("Player {} has been eliminated from game {}.", losingPlayer.getId(), game.getGameId());
         }
 
-        // Check if game is over (only one player left)
-        if (game.getPlayers().size() == 1) {
+        // Check if game is over (only one player left or no active players in turn sequence)
+        List<Player> activePlayers = game.getPlayers().stream()
+                                        .filter(p -> p.getDiceCount() > 0)
+                                        .collect(Collectors.toList());
+
+        if (activePlayers.size() <= 1) {
             game.setStatus(GameStatus.FINISHED);
-            // Safely set winner with null check
-            List<Player> playersList = new ArrayList<>(game.getPlayers());
-            Player winner = playersList.isEmpty() ? null : playersList.get(0);
+            Player winner = activePlayers.isEmpty() ? null : activePlayers.get(0);
             if (winner != null) {
                 game.setWinner(winner);
+                log.info("Game {} finished. Winner is Player {}.", game.getGameId(), winner.getId());
+            } else {
+                // Aucun gagnant si tous les joueurs sont éliminés en même temps (cas rare)
+                // ou si la partie se termine sans joueurs actifs.
+                game.setWinner(null); // Assure que winner est null
+                log.info("Game {} finished. No winner, all players eliminated or no active players left.", game.getGameId());
             }
         }
     }
@@ -334,5 +410,43 @@ public class GameService {
             .filter(p -> String.valueOf(p.getId()).equals(playerId))
             .findFirst()
             .orElseThrow(() -> new perudo_backend.exception.PlayerNotFoundException(playerId));
+    }
+
+    // Ajouter cette méthode de débogage 
+    public String debugGameState(String gameId) {
+        Game game = findById(gameId);
+        StringBuilder sb = new StringBuilder();
+        sb.append("Game Debug Info:\n");
+        sb.append("Game ID: ").append(game.getGameId()).append("\n");
+        sb.append("Status: ").append(game.getStatus()).append("\n");
+        sb.append("Players (").append(game.getPlayers().size()).append("):\n");
+        
+        for (Player p : game.getPlayers()) {
+            sb.append("  - ID: ").append(p.getId())
+              .append(", Username: ").append(p.getUsername())
+              .append(", CurrentTurn: ").append(p.isCurrentTurn())
+              .append(", Dice: ").append(p.getDice().size())
+              .append("\n");
+        }
+        
+        sb.append("Current Player: ");
+        if (game.getCurrentPlayer() != null) {
+            sb.append("ID=").append(game.getCurrentPlayer().getId())
+              .append(", Username=").append(game.getCurrentPlayer().getUsername())
+              .append(", CurrentTurn=").append(game.getCurrentPlayer().isCurrentTurn());
+        } else {
+            sb.append("null");
+        }
+        sb.append("\n");
+        
+        sb.append("Turn Sequence (").append(game.getTurnSequence().size()).append("):\n");
+        for (Player p : game.getTurnSequence()) {
+            sb.append("  - ID: ").append(p.getId())
+              .append(", Username: ").append(p.getUsername())
+              .append(", CurrentTurn: ").append(p.isCurrentTurn())
+              .append("\n");
+        }
+        
+        return sb.toString();
     }
 }
