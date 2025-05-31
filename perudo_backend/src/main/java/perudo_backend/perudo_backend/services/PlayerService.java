@@ -35,7 +35,8 @@ public class PlayerService {
         Player player = playerRepository.findById(playerId).orElse(null);
         if (player != null) {
             return player.getFriends().stream()
-                    .map(FriendDTO::new)
+                    .map(friend -> new FriendDTO(friend.getId(), friend.getUsername(), friend.getFriendCode()))
+                    .distinct()
                     .collect(Collectors.toList());
         }
         return List.of(); // Return an empty list if the player is not found

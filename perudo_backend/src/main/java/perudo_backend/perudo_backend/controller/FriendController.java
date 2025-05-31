@@ -9,11 +9,13 @@ import org.springframework.web.bind.annotation.*;
 
 import perudo_backend.perudo_backend.FriendRequest;
 import perudo_backend.perudo_backend.Player;
+import perudo_backend.perudo_backend.dto.FriendDTO;
 import perudo_backend.perudo_backend.repositories.FriendRequestRepository;
 import perudo_backend.perudo_backend.repositories.PlayerRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/friends")
@@ -212,7 +214,7 @@ public class FriendController {
     
     // Get friends of a player
     @GetMapping("/{playerId}/friends")
-    public ResponseEntity<List<Player>> getFriends(@PathVariable Long playerId) {
+    public ResponseEntity<List<FriendDTO>> getFriends(@PathVariable Long playerId) {
         logger.info("Getting friends for player {}", playerId);
         
         Optional<Player> playerOpt = playerRepository.findById(playerId);
@@ -222,18 +224,24 @@ public class FriendController {
         }
         
         Player player = playerOpt.get();
-        List<Player> friends = player.getFriends() != null ? 
-            player.getFriends().stream().toList() : 
-            java.util.Collections.emptyList();
+        List<FriendDTO> friendDTOs;
         
-        logger.info("Found {} friends for player {}", friends.size(), player.getUsername());
-        
-        // Debug: Log all friends
-        for (Player friend : friends) {
-            logger.info("Friend: {} (id={})", friend.getUsername(), friend.getId());
+        if (player.getFriends() != null) {
+            friendDTOs = player.getFriends().stream()
+                .map(friend -> new FriendDTO(friend.getId(), friend.getUsername(), friend.getFriendCode()))
+                .collect(Collectors.toList());
+        } else {
+            friendDTOs = java.util.Collections.emptyList();
         }
         
-        return ResponseEntity.ok(friends);
+        logger.info("Found {} friends for player {}", friendDTOs.size(), player.getUsername());
+        
+        // Debug: Log all friends (maintenant DTOs)
+        for (FriendDTO friendDto : friendDTOs) {
+            logger.info("Friend DTO: {} (id={})", friendDto.getUsername(), friendDto.getId());
+        }
+        
+        return ResponseEntity.ok(friendDTOs);
     }
     
     // Helper method to update friends lists for both players

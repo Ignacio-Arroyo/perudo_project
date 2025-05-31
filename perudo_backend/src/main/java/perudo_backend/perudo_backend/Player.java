@@ -3,13 +3,20 @@ package perudo_backend.perudo_backend;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.Random;
 import java.util.ArrayList;
 import perudo_backend.perudo_backend.Product;
 import java.util.Objects;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 @Entity
 @Table(name = "players")
+@JsonIdentityInfo(
+  generator = ObjectIdGenerators.PropertyGenerator.class, 
+  property = "id")
 public class Player {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,7 +51,7 @@ public class Player {
         joinColumns = @JoinColumn(name = "player_id"),
         inverseJoinColumns = @JoinColumn(name = "friend_id")
     )
-    private List<Player> friends = new ArrayList<>();
+    private Set<Player> friends = new HashSet<>();
 
     @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GameRecord> gameRecords = new ArrayList<>();
@@ -80,7 +87,7 @@ public class Player {
         this.trophies = 0;
         this.winRate = 0;
         this.dice = new ArrayList<>();
-        this.friends = new ArrayList<>();
+        this.friends = new HashSet<>();
         this.gameRecords = new ArrayList<>();
         this.inventory = new ArrayList<>();
         this.equippedProduct = null;
@@ -202,11 +209,11 @@ public class Player {
         this.winRate = winRate;
     }
 
-    public List<Player> getFriends() {
+    public Set<Player> getFriends() {
         return friends;
     }
 
-    public void setFriends(List<Player> friends) {
+    public void setFriends(Set<Player> friends) {
         this.friends = friends;
     }
 
@@ -248,18 +255,13 @@ public class Player {
 
     // Helper methods for managing relationships
     public void addFriend(Player friend) {
-        if (!this.friends.contains(friend)) {
-            this.friends.add(friend);
-            if (!friend.getFriends().contains(this)) {
-                friend.getFriends().add(this);
-            }
-        }
+        this.friends.add(friend);
+        friend.getFriends().add(this);
     }
 
     public void removeFriend(Player friend) {
-        if (this.friends.remove(friend)) {
-            friend.getFriends().remove(this);
-        }
+        this.friends.remove(friend);
+        friend.getFriends().remove(this);
     }
 
     public void addGameRecord(GameRecord gameRecord) {
