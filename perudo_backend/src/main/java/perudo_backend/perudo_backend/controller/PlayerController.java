@@ -34,15 +34,23 @@ public class PlayerController {
     @PostMapping
     public ResponseEntity<?> createPlayer(@RequestBody Player player) {
         logger.info("Attempting to create player: {}", player.toString());
-        // Check if the username already exists
+        
+        // Ensure ID is null for a new player, just in case
+        player.setId(null);
+
         Optional<Player> existingPlayer = playerRepository.findByUsername(player.getUsername());
         if (existingPlayer.isPresent()) {
             logger.warn("Attempt to create a player with an existing username: {}", player.getUsername());
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already exists");
         }
-        Player createdPlayer = playerRepository.save(player);
-        logger.info("Player created successfully: {} - {}", createdPlayer.getUsername(), createdPlayer.getFriendCode());
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdPlayer);
+        try {
+            Player createdPlayer = playerRepository.save(player);
+            logger.info("Player created successfully: {} - {} - ID: {}", createdPlayer.getUsername(), createdPlayer.getFriendCode(), createdPlayer.getId());
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdPlayer);
+        } catch (Exception e) {
+            logger.error("Error during player save: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error saving player: " + e.getMessage());
+        }
     }
 
     @PostMapping("/login")
@@ -63,7 +71,7 @@ public class PlayerController {
     }
         
     @GetMapping("/{playerId}")
-    public Player getPlayerProfile(@PathVariable int playerId) {
+    public Player getPlayerProfile(@PathVariable Long playerId) {
         Player player = playerService.getPlayerById(playerId);
         if (player != null) {
             player.setPassword(null); // Ensure password is not sent
@@ -87,14 +95,14 @@ public class PlayerController {
 
     // Get a Player by ID
     @PostMapping("/{id}")
-    public ResponseEntity<Player> getPlayerById(@PathVariable int id) {
+    public ResponseEntity<Player> getPlayerById(@PathVariable Long id) {
         Optional<Player> player = playerRepository.findById(id);
         return player.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     // Update a Player
     @PutMapping("/{id}")
-    public ResponseEntity<Player> updatePlayer(@PathVariable int id, @RequestBody Player playerDetails) {
+    public ResponseEntity<Player> updatePlayer(@PathVariable Long id, @RequestBody Player playerDetails) {
         return playerRepository.findById(id).map(player -> {
             player.setNom(playerDetails.getNom());
             player.setPrenom(playerDetails.getPrenom());
@@ -107,7 +115,7 @@ public class PlayerController {
 
     // Delete a Player
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePlayer(@PathVariable int id) {
+    public ResponseEntity<Void> deletePlayer(@PathVariable Long id) {
         return playerRepository.findById(id).map(player -> {
             playerRepository.delete(player);
             return ResponseEntity.ok().<Void>build();
@@ -129,7 +137,7 @@ public class PlayerController {
 
     // Récupérer l'inventaire du joueur
     @GetMapping("/{playerId}/inventory")
-    public ResponseEntity<?> getInventory(@PathVariable int playerId) {
+    public ResponseEntity<?> getInventory(@PathVariable Long playerId) {
         Player player = playerService.getPlayerById(playerId);
         if (player == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(player.getInventory());
@@ -137,14 +145,14 @@ public class PlayerController {
 
     // Acheter un dé
     @PostMapping("/{playerId}/buy")
-    public ResponseEntity<?> buyProduct(@PathVariable int playerId, @RequestBody Map<String, Integer> body) {
+    public ResponseEntity<?> buyProduct(@PathVariable Long playerId, @RequestBody Map<String, Integer> body) {
         int productId = body.get("productId");
         return playerService.buyProduct(playerId, productId);
     }
 
     // Équiper un dé
     @PostMapping("/{playerId}/equip")
-    public ResponseEntity<?> equipDice(@PathVariable int playerId, @RequestBody Map<String, Integer> body) {
+    public ResponseEntity<?> equipDice(@PathVariable Long playerId, @RequestBody Map<String, Integer> body) {
         int diceId = body.get("diceId");
         return playerService.equipDice(playerId, diceId);
     }
@@ -180,7 +188,7 @@ public class PlayerController {
 
     // Mettre à jour les trophées d'un joueur
     @PutMapping("/{playerId}/trophies")
-    public ResponseEntity<?> updatePlayerTrophies(@PathVariable int playerId, @RequestBody Map<String, Integer> body) {
+    public ResponseEntity<?> updatePlayerTrophies(@PathVariable Long playerId, @RequestBody Map<String, Integer> body) {
         logger.info("Mise à jour des trophées pour le joueur {}", playerId);
         int trophiesToAdd = body.getOrDefault("amount", 0);
         
@@ -202,7 +210,7 @@ public class PlayerController {
 
     @PostMapping("/verify-password")
     public ResponseEntity<?> verifyPassword(@RequestBody Map<String, Object> body) {
-        Integer playerId = (Integer) body.get("playerId");
+        Long playerId = ((Number) body.get("playerId")).longValue();
         String password = (String) body.get("password");
         
         if (playerId == null || password == null) {

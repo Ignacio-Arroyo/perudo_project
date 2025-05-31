@@ -64,27 +64,35 @@ const Leaderboard = () => {
             <th>Rang</th>
             <th>Joueur</th>
             <th>Trophées</th>
+            <th>Points</th>
             <th>Pièces</th>
           </tr>
         </thead>
         <tbody>
           {users.length > 0 ? (
             users.map((user, index) => (
-              <tr key={user.player_id} className={`leaderboard-row ${getRankColor(index)}`}>
+              <tr key={user.id} className={`leaderboard-row ${getRankColor(index)}`}>
                 <td className="rank">{index + 1}</td>
                 <td className="player-info">
                   <span className="username">{user.username}</span>
-                  <span className="player-details">{user.nom} {user.prenom}</span>
+                  {(user.nom || user.prenom) && 
+                    <span className="player-details">
+                      {user.nom} {user.prenom}
+                    </span>
+                  }
                 </td>
                 <td className="trophies">
                   <span className="trophy-count">{user.trophies}</span>
+                </td>
+                <td className="points">
+                  {user.points || 0}
                 </td>
                 <td className="pieces">{user.pieces}</td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan="4">Aucun joueur trouvé.</td>
+              <td colSpan="5">Aucun joueur trouvé.</td>
             </tr>
           )}
         </tbody>

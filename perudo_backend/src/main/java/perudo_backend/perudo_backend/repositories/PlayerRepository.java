@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import perudo_backend.perudo_backend.Player;
 
-public interface PlayerRepository extends JpaRepository<Player, Integer> {
+public interface PlayerRepository extends JpaRepository<Player, Long> {
 
     Optional<Player> findByUsername(String username);
     Optional<Player> findByFriendCode(String friendCode);

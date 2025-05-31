@@ -127,6 +127,16 @@ public class Game {
             p.setCurrentTurn(p.equals(currentPlayer));
         }
         this.currentPlayer = currentPlayer; 
+        if (this.currentPlayer != null && !this.turnSequence.isEmpty()) {
+            this.currentTurnIndex = this.turnSequence.indexOf(this.currentPlayer);
+            System.out.println("[Game.setCurrentPlayer] Set currentTurnIndex to: " + this.currentTurnIndex + " for player " + (this.currentPlayer != null ? this.currentPlayer.getId() : "null"));
+        } else if (this.turnSequence.isEmpty()) {
+            this.currentTurnIndex = 0;
+            System.out.println("[Game.setCurrentPlayer] turnSequence is empty or currentPlayer is null, currentTurnIndex reset/kept as is.");
+        } else {
+             this.currentTurnIndex = 0;
+             System.out.println("[Game.setCurrentPlayer] currentPlayer is null, turnSequence not empty. currentTurnIndex set to 0.");
+        }
     }
 
     public Bid getCurrentBid() { 
@@ -195,11 +205,19 @@ public class Game {
     }
 
     public void moveToNextPlayer() {
-        // Si pas de joueurs ou séquence vide, on ne fait rien
+        System.out.println("[Game.moveToNextPlayer] Called. Current turnSequence size: " + turnSequence.size());
         if (turnSequence.isEmpty()) {
+            System.out.println("[Game.moveToNextPlayer] turnSequence is empty, returning.");
             return;
         }
         
+        System.out.println("[Game.moveToNextPlayer] Current player before move: " + (currentPlayer != null ? currentPlayer.getId() + " (" + currentPlayer.getUsername() + ")" : "null") + " at index: " + currentTurnIndex);
+        System.out.print("[Game.moveToNextPlayer] Turn sequence IDs: ");
+        for (Player p : turnSequence) {
+            System.out.print(p.getId() + " ");
+        }
+        System.out.println();
+
         // Désactiver le tour du joueur actuel
         if (currentPlayer != null) {
             currentPlayer.setCurrentTurn(false);
@@ -209,6 +227,8 @@ public class Game {
         currentTurnIndex = (currentTurnIndex + 1) % turnSequence.size();
         currentPlayer = turnSequence.get(currentTurnIndex);
         
+        System.out.println("[Game.moveToNextPlayer] New current player after move: " + (currentPlayer != null ? currentPlayer.getId() + " (" + currentPlayer.getUsername() + ")" : "null") + " at new index: " + currentTurnIndex);
+
         // Activer le tour du nouveau joueur actuel
         if (currentPlayer != null) {
             currentPlayer.setCurrentTurn(true);

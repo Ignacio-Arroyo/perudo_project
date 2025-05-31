@@ -11,6 +11,7 @@ public class PlayerDTO {
     private double winRate;
     private int trophies;
     private int pieces;
+    private int points;
 
     // Constructor
     public PlayerDTO(Player player) {
@@ -22,6 +23,7 @@ public class PlayerDTO {
         this.winRate = player.getWinRate();
         this.trophies = player.getTrophies();
         this.pieces = player.getPieces();
+        this.points = player.getPoints();
     }
 
         // Override toString() method
@@ -102,5 +104,13 @@ public class PlayerDTO {
 
     public void setPieces(int pieces) {
         this.pieces = pieces;
+    }
+
+    public int getPoints() {
+        return points;
+    }
+
+    public void setPoints(int points) {
+        this.points = points;
     }
 }

@@ -113,7 +113,7 @@ public class FriendController {
 
     // Get all friend requests for a player
     @GetMapping("/requests/{playerId}")
-    public ResponseEntity<List<FriendRequest>> getFriendRequests(@PathVariable int playerId) {
+    public ResponseEntity<List<FriendRequest>> getFriendRequests(@PathVariable Long playerId) {
         logger.info("Getting friend requests for player ID: {}", playerId);
         
         Optional<Player> playerOpt = playerRepository.findById(playerId);
@@ -142,7 +142,7 @@ public class FriendController {
 
     // Get all friend requests for a player - Alternative endpoint for player_id field
     @GetMapping("/requests/player/{playerId}")
-    public ResponseEntity<List<FriendRequest>> getFriendRequestsByPlayerId(@PathVariable int playerId) {
+    public ResponseEntity<List<FriendRequest>> getFriendRequestsByPlayerId(@PathVariable Long playerId) {
         logger.info("Getting friend requests by player_id: {}", playerId);
         
         Optional<Player> playerOpt = playerRepository.findById(playerId);
@@ -212,7 +212,7 @@ public class FriendController {
     
     // Get friends of a player
     @GetMapping("/{playerId}/friends")
-    public ResponseEntity<List<Player>> getFriends(@PathVariable int playerId) {
+    public ResponseEntity<List<Player>> getFriends(@PathVariable Long playerId) {
         logger.info("Getting friends for player {}", playerId);
         
         Optional<Player> playerOpt = playerRepository.findById(playerId);

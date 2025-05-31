@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.ArrayList;
 import perudo_backend.perudo_backend.Product;
+import java.util.Objects;
 
 @Entity
 @Table(name = "players")
@@ -54,7 +55,24 @@ public class Player {
     @OneToMany
     private List<Product> inventory = new ArrayList<>();
     private Integer equippedProduct;
-    // --- existing code ...
+    
+    // --- GAME ACTIVITY TRACKING ---
+    private int gamesPlayed = 0;
+    private int gamesWon = 0;
+    private int totalChallenges = 0;
+    private int successfulChallenges = 0;
+    private int playersEliminated = 0;
+    private int points = 0;
+    
+    // --- TRANSIENT FIELDS FOR CURRENT GAME ---
+    @Transient
+    private int currentGameChallenges = 0;
+    @Transient 
+    private int currentGameSuccessfulChallenges = 0;
+    @Transient
+    private int currentGameEliminatedPlayers = 0;
+    @Transient
+    private int finalPosition = 0; // 1st, 2nd, 3rd place etc.
 
     // Constructors
     public Player() {
@@ -96,6 +114,22 @@ public class Player {
                 ", friendCode='" + friendCode + '\'' +
                 ", winRate=" + winRate +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Player player = (Player) o;
+        if (id == null) {
+            return false; 
+        }
+        return Objects.equals(id, player.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 
     @PrePersist
@@ -292,4 +326,28 @@ public class Player {
     // Getter/setter pour equippedProduct
     public Integer getEquippedProduct() { return equippedProduct; }
     public void setEquippedProduct(Integer equippedProduct) { this.equippedProduct = equippedProduct; }
+
+    // --- GAME ACTIVITY TRACKING ---
+    public int getGamesPlayed() { return gamesPlayed; }
+    public void setGamesPlayed(int gamesPlayed) { this.gamesPlayed = gamesPlayed; }
+    public int getGamesWon() { return gamesWon; }
+    public void setGamesWon(int gamesWon) { this.gamesWon = gamesWon; }
+    public int getTotalChallenges() { return totalChallenges; }
+    public void setTotalChallenges(int totalChallenges) { this.totalChallenges = totalChallenges; }
+    public int getSuccessfulChallenges() { return successfulChallenges; }
+    public void setSuccessfulChallenges(int successfulChallenges) { this.successfulChallenges = successfulChallenges; }
+    public int getPlayersEliminated() { return playersEliminated; }
+    public void setPlayersEliminated(int playersEliminated) { this.playersEliminated = playersEliminated; }
+    public int getPoints() { return points; }
+    public void setPoints(int points) { this.points = points; }
+
+    // --- TRANSIENT FIELDS FOR CURRENT GAME ---
+    public int getCurrentGameChallenges() { return currentGameChallenges; }
+    public void setCurrentGameChallenges(int currentGameChallenges) { this.currentGameChallenges = currentGameChallenges; }
+    public int getCurrentGameSuccessfulChallenges() { return currentGameSuccessfulChallenges; }
+    public void setCurrentGameSuccessfulChallenges(int currentGameSuccessfulChallenges) { this.currentGameSuccessfulChallenges = currentGameSuccessfulChallenges; }
+    public int getCurrentGameEliminatedPlayers() { return currentGameEliminatedPlayers; }
+    public void setCurrentGameEliminatedPlayers(int currentGameEliminatedPlayers) { this.currentGameEliminatedPlayers = currentGameEliminatedPlayers; }
+    public int getFinalPosition() { return finalPosition; }
+    public void setFinalPosition(int finalPosition) { this.finalPosition = finalPosition; }
 }

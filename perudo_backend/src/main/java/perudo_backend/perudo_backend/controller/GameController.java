@@ -3,6 +3,9 @@ package perudo_backend.perudo_backend.controller;
 import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
+import java.util.ArrayList;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -10,16 +13,21 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
 
 import perudo_backend.perudo_backend.Game;
 import perudo_backend.perudo_backend.Player;
 import perudo_backend.perudo_backend.dto.*;
 import perudo_backend.perudo_backend.dto.RollDiceRequest;
+import perudo_backend.perudo_backend.dto.GameEndResultDTO;
 import perudo_backend.perudo_backend.services.*;
+import perudo_backend.perudo_backend.repositories.PlayerRepository;
 import perudo_backend.exception.PlayerNotFoundException;
 import perudo_backend.perudo_backend.Dice;
 import perudo_backend.perudo_backend.GameStatus;
 import perudo_backend.exception.NotEnoughPlayersException;
+import perudo_backend.exception.GameNotFoundException;
+import perudo_backend.exception.GameFullException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -37,6 +45,12 @@ public class GameController {
     
     @Autowired
     private GameService gameService;
+    
+    @Autowired
+    private PlayerRepository playerRepository;
+    
+    // Store challenge results temporarily
+    private Map<String, ChallengeResultDTO> challengeResults = new ConcurrentHashMap<>();
 
     @MessageMapping("/game/create")
     @SendTo("/topic/lobby")
@@ -56,7 +70,24 @@ public class GameController {
     public ResponseEntity<GameStateDTO> joinGame(
             @PathVariable String gameId,  // Changed from int to String
             @PathVariable String playerId) {  // Changed from int to String
-        return ResponseEntity.ok(gameService.joinGame(gameId, playerId));
+        log.info("Attempting to join game: gameId='{}', playerId='{}'", gameId, playerId);
+        try {
+            GameStateDTO gameState = gameService.joinGame(gameId, playerId);
+            log.info("Successfully joined game: gameId='{}', playerId='{}'. Response: {}", gameId, playerId, gameState);
+            return ResponseEntity.ok(gameState);
+        } catch (PlayerNotFoundException pnfe) {
+            log.warn("Player not found while trying to join game: gameId='{}', playerId='{}'. Error: {}", gameId, playerId, pnfe.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // Or a DTO with error
+        } catch (GameNotFoundException gnfe) {
+            log.warn("Game not found while trying to join game: gameId='{}', playerId='{}'. Error: {}", gameId, playerId, gnfe.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // Or a DTO with error
+        } catch (GameFullException gfe) {
+            log.warn("Game full while trying to join game: gameId='{}', playerId='{}'. Error: {}", gameId, playerId, gfe.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null); // Or a DTO with error
+        } catch (Exception e) {
+            log.error("Unexpected error while joining game: gameId='{}', playerId='{}'", gameId, playerId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null); // Or a DTO with error
+        }
     }
 
     @GetMapping("/{gameId}/players/{playerId}")
@@ -126,14 +157,86 @@ public class GameController {
         return ResponseEntity.ok(gameService.processChallenge(gameId, playerId));
     }
 
+    @PostMapping("/{gameId}/next-round")
+    public ResponseEntity<GameStateDTO> startNextRound(
+            @PathVariable String gameId,
+            @RequestBody Map<String, String> request) {
+        String losingPlayerId = request.get("losingPlayerId");
+        GameStateDTO gameState = gameService.startNextRoundAfterChallenge(gameId, losingPlayerId);
+        
+        // Send updated dice to each player after the new round starts
+        Game game = gameService.getGame(gameId);
+        for (Player player : game.getPlayers()) {
+            if (player.getDice() != null && !player.getDice().isEmpty()) {
+                DiceRollDTO diceRoll = new DiceRollDTO(
+                    String.valueOf(player.getId()),
+                    player.getDice().stream()
+                        .map(Dice::getValue)
+                        .collect(Collectors.toList())
+                );
+                
+                messagingTemplate.convertAndSendToUser(
+                    String.valueOf(player.getId()),
+                    "/queue/game/" + gameId + "/dice",
+                    diceRoll
+                );
+                
+                log.info("Sent updated dice to player {} after challenge: {}", 
+                    player.getId(), diceRoll.getValues());
+            }
+        }
+        
+        // Also broadcast the updated game state
+        messagingTemplate.convertAndSend("/topic/game/" + gameId + "/state", gameState);
+        
+        return ResponseEntity.ok(gameState);
+    }
+
     @MessageMapping("/game/{gameId}/challenge")
     public void challenge(@DestinationVariable String gameId, ChallengeRequest request) {
-        GameStateDTO gameState = gameService.processChallenge(gameId, String.valueOf(request.getPlayerId()));
-        
-        // Broadcast challenge result and new game state
-        messagingTemplate.convertAndSend("/topic/game/" + gameId + "/state", 
-            gameState);
-    }    @MessageMapping("/game/{gameId}/state")
+        try {
+            log.info("Processing challenge via WebSocket: gameId={}, challengerId={}",
+                gameId, request.getPlayerId());
+                
+            GameStateDTO gameState = gameService.processChallenge(gameId, String.valueOf(request.getPlayerId()));
+            
+            // Get the detailed challenge result
+            ChallengeResultDTO challengeResult = gameService.getChallengeResult(gameId);
+            
+            log.info("Challenge processed successfully for game {}", gameId);
+            
+            // First, broadcast the challenge result with all revealed dice
+            if (challengeResult != null) {
+                messagingTemplate.convertAndSend("/topic/game/" + gameId + "/challenge", challengeResult);
+                log.info("Challenge result broadcasted: {} vs {}, actual count: {}, challenge {}",
+                    challengeResult.getChallengerName(), challengeResult.getBidPlayerName(),
+                    challengeResult.getActualCount(), 
+                    challengeResult.isChallengeSuccessful() ? "SUCCESSFUL" : "FAILED");
+            }
+            
+            // Then broadcast updated game state to all players
+            messagingTemplate.convertAndSend("/topic/game/" + gameId + "/state", gameState);
+            
+            // Clear the challenge result after broadcasting
+            gameService.clearChallengeResult(gameId);
+            
+            // If the game is finished, broadcast the final result
+            if (gameState.getStatus() == GameStatus.FINISHED) {
+                log.info("Game {} finished after challenge", gameId);
+            }
+            
+        } catch (Exception e) {
+            log.error("Error processing challenge: ", e);
+            GameStateDTO errorState = new GameStateDTO(
+                gameId,
+                GameStatus.ERROR,
+                e.getMessage()
+            );
+            messagingTemplate.convertAndSend("/topic/game/" + gameId + "/state", errorState);
+        }
+    }
+
+    @MessageMapping("/game/{gameId}/state")
     public void getGameState(@DestinationVariable String gameId, Principal principal) {
         Game game = gameService.getGame(gameId);
         String playerId = String.valueOf(getUserId(principal));
@@ -216,6 +319,75 @@ public class GameController {
         } catch (Exception e) {
             log.error("Error getting debug info for game {}: {}", gameId, e.getMessage(), e);
             return ResponseEntity.status(500).body("Error: " + e.getMessage());
+        }
+    }
+    
+    @PostMapping("/{gameId}/end-results")
+    public ResponseEntity<GameEndResultDTO> getGameEndResults(
+            @PathVariable String gameId,
+            @RequestBody Map<String, Object> request) {
+        try {
+            // Get the list of all original players from the request
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> playerMaps = (List<Map<String, Object>>) request.get("players");
+            
+            if (playerMaps == null || playerMaps.isEmpty()) {
+                log.error("No players provided for game end results calculation");
+                return ResponseEntity.badRequest().build();
+            }
+            
+            // Get the current game state to access dice information
+            Game game = gameService.findById(gameId);
+            
+            // Fetch real Player objects from the database and update their current game activities
+            List<Player> allOriginalPlayers = new ArrayList<>();
+            
+            for (Map<String, Object> playerMap : playerMaps) {
+                Long playerId = Long.parseLong(playerMap.get("id").toString());
+                
+                // Fetch the real player from the database
+                Player player = playerRepository.findById(playerId)
+                    .orElseThrow(() -> new PlayerNotFoundException("Player not found: " + playerId));
+                
+                // Update current game activity from the request
+                if (playerMap.containsKey("currentGameChallenges")) {
+                    player.setCurrentGameChallenges((Integer) playerMap.get("currentGameChallenges"));
+                }
+                if (playerMap.containsKey("currentGameSuccessfulChallenges")) {
+                    player.setCurrentGameSuccessfulChallenges((Integer) playerMap.get("currentGameSuccessfulChallenges"));
+                }
+                if (playerMap.containsKey("currentGameEliminatedPlayers")) {
+                    player.setCurrentGameEliminatedPlayers((Integer) playerMap.get("currentGameEliminatedPlayers"));
+                }
+                
+                // Set dice count from game state (we don't need the actual Dice objects, just the count)
+                Player gamePlayer = game.getPlayers().stream()
+                    .filter(p -> p.getId().equals(playerId))
+                    .findFirst()
+                    .orElse(null);
+                
+                if (gamePlayer != null && gamePlayer.getDice() != null) {
+                    // We'll pass the dice count to the service method instead of setting dice on the player
+                    // This avoids the Hibernate TransientObjectException
+                    log.info("Player {} has {} dice remaining", player.getUsername(), gamePlayer.getDice().size());
+                }
+                
+                allOriginalPlayers.add(player);
+            }
+            
+            GameEndResultDTO results = gameService.calculateGameEndResults(gameId, allOriginalPlayers);
+            
+            if (results == null) {
+                log.warn("Could not calculate end results for game {}", gameId);
+                return ResponseEntity.notFound().build();
+            }
+            
+            log.info("Game end results calculated for game {}: {} players ranked", gameId, results.getPlayerResults().size());
+            return ResponseEntity.ok(results);
+            
+        } catch (Exception e) {
+            log.error("Error calculating game end results for game {}: {}", gameId, e.getMessage(), e);
+            return ResponseEntity.status(500).body(null);
         }
     }
 }

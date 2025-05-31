@@ -27,11 +27,11 @@ public class PlayerService {
     @Autowired
     private ProductRepository productRepository;
 
-    public Player getPlayerById(int playerId) {
+    public Player getPlayerById(Long playerId) {
         return playerRepository.findById(playerId).orElse(null);
     }
 
-    public List<FriendDTO> getFriendsByPlayerId(int playerId) {
+    public List<FriendDTO> getFriendsByPlayerId(Long playerId) {
         Player player = playerRepository.findById(playerId).orElse(null);
         if (player != null) {
             return player.getFriends().stream()
@@ -41,7 +41,7 @@ public class PlayerService {
         return List.of(); // Return an empty list if the player is not found
     }
 
-    public ResponseEntity<?> buyProduct(int playerId, int productId) {
+    public ResponseEntity<?> buyProduct(Long playerId, int productId) {
         logger.info("Tentative d'achat du produit {} par le joueur {}", productId, playerId);
         
         Player player = getPlayerById(playerId);
@@ -88,7 +88,7 @@ public class PlayerService {
         }
     }
 
-    public ResponseEntity<?> equipDice(int playerId, int productId) {
+    public ResponseEntity<?> equipDice(Long playerId, int productId) {
         logger.info("Tentative d'équipement du produit {} par le joueur {}", productId, playerId);
         
         Player player = getPlayerById(playerId);

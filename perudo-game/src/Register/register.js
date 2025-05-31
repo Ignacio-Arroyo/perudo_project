@@ -64,23 +64,20 @@ const Register = () => {
         username: formData.username,
         nom: formData.lastName,
         prenom: formData.firstName,
-        password: formData.password,
-        pieces: 0,
-        equippedProduct: 0,
-        winRate: 0,
-        friendCode: ""
+        password: formData.password
       }, {
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Basic ' + btoa('username:password')
+          'Content-Type': 'application/json'
         }
       });
 
-      if (response.status === 200) {
+      if (response.status === 201) {
         console.log('Player created:', response.data);
-        // Mettre à jour l'état d'authentification
         login(response.data);
-        // Rediriger vers la page d'accueil
+        navigate('/home');
+      } else if (response.status === 200) {
+        console.log('Player created (status 200):', response.data);
+        login(response.data);
         navigate('/home');
       }
     } catch (error) {
