@@ -113,7 +113,9 @@ const Inventory = () => {
             )}
             
             {inventory.length === 0 ? (
-                <p>Votre inventaire est vide. Achetez des dés dans le Shop!</p>
+                <div className="inventory-empty">
+                    <p>Votre inventaire est vide. Achetez des dés dans le Shop!</p>
+                </div>
             ) : (
                 <div className="inventory-grid">
                     {inventory.map(item => (

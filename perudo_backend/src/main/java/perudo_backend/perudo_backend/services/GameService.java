@@ -12,17 +12,20 @@ import perudo_backend.perudo_backend.Bid;
 import perudo_backend.perudo_backend.Game;
 import perudo_backend.perudo_backend.GameStatus;
 import perudo_backend.perudo_backend.Player;
+import perudo_backend.perudo_backend.GameRecord;
 import perudo_backend.perudo_backend.dto.GameStateDTO;
 import perudo_backend.perudo_backend.dto.ChallengeResultDTO;
 import perudo_backend.perudo_backend.dto.BidDTO;
 import perudo_backend.perudo_backend.dto.GameEndResultDTO;
 import perudo_backend.perudo_backend.repositories.PlayerRepository;
+import perudo_backend.perudo_backend.repositories.GameRecordRepository;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import perudo_backend.perudo_backend.Dice;
 import java.util.concurrent.ConcurrentHashMap;
 import jakarta.annotation.PostConstruct;
+import java.time.LocalDateTime;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +43,9 @@ public class GameService {
     
     @Autowired
     private PlayerRepository playerRepository;
+    
+    @Autowired
+    private GameRecordRepository gameRecordRepository;
 
     @PostConstruct
     public void init() {
@@ -94,6 +100,8 @@ public class GameService {
         Player persistentPlayer = playerRepository.findById(pId)
             .orElseThrow(() -> new PlayerNotFoundException(pId)); // Throws if player doesn't exist
 
+        persistentPlayer.resetCurrentGameStats(); // Reset stats for the new game
+
         // Vérifier si un joueur avec cet ID est déjà dans la partie
         boolean alreadyJoined = game.getPlayers().stream()
                                     .anyMatch(p -> p.getId() != null && p.getId().equals(persistentPlayer.getId()));
@@ -129,6 +137,13 @@ public class GameService {
 
         if (game.getPlayers().size() < 2) {
             throw new NotEnoughPlayersException("Not enough players to start the game. Minimum required: 2");
+        }
+
+        // Store a copy of the players list at the start of the game for end-game stats
+        game.setOriginalPlayers(new ArrayList<>(game.getPlayers()));
+        // Ensure stats are reset for all players in originalPlayers list (and consequently in game.getPlayers() as they are same objects)
+        for (Player player : game.getOriginalPlayers()) {
+            player.resetCurrentGameStats();
         }
 
         game.initializeTurnSequence();
@@ -371,9 +386,13 @@ public class GameService {
         // Determine who loses a die
         Player losingPlayer = challengeSuccessful ? bidPlayer : challenger;
         
-        // Track elimination for the challenger if they succeeded
-        if (challengeSuccessful && losingPlayer.getDice() != null && losingPlayer.getDice().size() <= 1) {
-            challenger.setCurrentGameEliminatedPlayers(challenger.getCurrentGameEliminatedPlayers() + 1);
+        // Track elimination by the one who "won" the challenge round
+        if (losingPlayer.getDice() != null && losingPlayer.getDice().size() <= 1) { // check if the losing player will be eliminated
+            if (challengeSuccessful) { // Challenger won, bidPlayer lost and is eliminated
+                challenger.setCurrentGameEliminatedPlayers(challenger.getCurrentGameEliminatedPlayers() + 1);
+            } else { // Challenger lost (and is eliminated), bidPlayer won the challenge round
+                bidPlayer.setCurrentGameEliminatedPlayers(bidPlayer.getCurrentGameEliminatedPlayers() + 1);
+            }
         }
         
         log.info("Challenge result: Bid was {}x{}, actual count: {}, challenge {}",
@@ -570,38 +589,61 @@ public class GameService {
     // --- GAME END RESULTS AND SCORING SYSTEM ---
     
     @Transactional
-    public GameEndResultDTO calculateGameEndResults(String gameId, List<Player> allOriginalPlayers) {
+    public GameEndResultDTO calculateGameEndResults(String gameId) {
         Game game = findById(gameId);
         
         if (game.getStatus() != GameStatus.FINISHED) {
             log.warn("Trying to calculate end results for unfinished game: {}", gameId);
             return null;
         }
+
+        // Diagnostic: Log all players in DB at the start of this method
+        try {
+            List<Player> allPlayersInDB = playerRepository.findAll();
+            log.info("[GameEnd] All players in DB at start of calculateGameEndResults for game {}: {}",
+                gameId, allPlayersInDB.stream().map(p -> "ID=" + p.getId() + ",User=" + p.getUsername()).collect(Collectors.toList()));
+        } catch (Exception e) {
+            log.error("[GameEnd] Error trying to list all players from DB at start of calculateGameEndResults for game {}: {}", gameId, e.getMessage());
+        }
+
+        List<Player> playersAtGameStart = game.getOriginalPlayers();
+        if (playersAtGameStart == null || playersAtGameStart.isEmpty()) {
+            log.error("Original players list is empty for game {}. Cannot calculate results.", gameId);
+            // Potentially return an error DTO or throw an exception
+            return new GameEndResultDTO(gameId, true, new ArrayList<>()); // Or some other error indication
+        }
         
         // Detect if this was a 2-player game
-        boolean isTwoPlayerGame = allOriginalPlayers.size() == 2;
-        log.info("Game {} ended with {} players. Two-player special rules: {}", gameId, allOriginalPlayers.size(), isTwoPlayerGame);
+        boolean isTwoPlayerGame = playersAtGameStart.size() == 2;
+        log.info("Game {} ended with {} starting players. Two-player special rules: {}", gameId, playersAtGameStart.size(), isTwoPlayerGame);
         
-        // Create ranked list of players based on elimination order
-        List<Player> rankedPlayers = createPlayerRanking(allOriginalPlayers, game.getWinner(), game);
+        // Create ranked list of players based on elimination order and current state in originalPlayers
+        List<Player> rankedPlayers = createPlayerRanking(playersAtGameStart, game.getWinner(), game);
         
         // Calculate points and coins for each player
         List<GameEndResultDTO.PlayerGameResult> playerResults = new ArrayList<>();
         
         for (int i = 0; i < rankedPlayers.size(); i++) {
-            Player player = rankedPlayers.get(i);
-            // S'assurer de travailler avec l'entité fraîchement chargée pour éviter les problèmes d'état détaché
-            Player managedPlayer = playerRepository.findById(player.getId()).orElseThrow(() -> new PlayerNotFoundException(player.getId()));
+            Player originalPlayerInstance = rankedPlayers.get(i);
+            
+            // Fetch the managed entity from DB to persist changes
+            log.info("[GameEnd] Processing player from originalPlayers list for ranking/stats: ID={}, Username={}. Attempting to fetch from DB.", 
+                originalPlayerInstance.getId(), originalPlayerInstance.getUsername());
 
-            // Copier les stats de jeu en cours de allOriginalPlayers vers managedPlayer
-            // car allOriginalPlayers peut contenir des instances différentes avec les bonnes stats de jeu en cours
-            Player originalPlayerState = allOriginalPlayers.stream()
-                .filter(op -> op.getId().equals(managedPlayer.getId()))
-                .findFirst().orElse(managedPlayer); // Fallback sur managedPlayer si non trouvé, mais ne devrait pas arriver
+            Player managedPlayer = playerRepository.findById(originalPlayerInstance.getId())
+                .orElseThrow(() -> {
+                    log.error("[GameEnd] PlayerNotFoundException: Could not find player with id {} in repository while calculating game end results. Original instance from game.originalPlayers: ID={}, Username={}", 
+                        originalPlayerInstance.getId(), originalPlayerInstance.getId(), originalPlayerInstance.getUsername());
+                    return new PlayerNotFoundException(originalPlayerInstance.getId());
+                });
 
-            managedPlayer.setCurrentGameChallenges(originalPlayerState.getCurrentGameChallenges());
-            managedPlayer.setCurrentGameSuccessfulChallenges(originalPlayerState.getCurrentGameSuccessfulChallenges());
-            managedPlayer.setCurrentGameEliminatedPlayers(originalPlayerState.getCurrentGameEliminatedPlayers());
+            // Copy the accumulated transient stats from the originalPlayerInstance (from game.getOriginalPlayers())
+            // to the managedPlayer entity that will be saved.
+            managedPlayer.setCurrentGameChallenges(originalPlayerInstance.getCurrentGameChallenges());
+            managedPlayer.setCurrentGameSuccessfulChallenges(originalPlayerInstance.getCurrentGameSuccessfulChallenges());
+            managedPlayer.setCurrentGameEliminatedPlayers(originalPlayerInstance.getCurrentGameEliminatedPlayers());
+            // finalPosition will be set by ranking logic, or can be set here
+            managedPlayer.setFinalPosition(i + 1); 
 
             int position = i + 1;
             
@@ -619,13 +661,18 @@ public class GameService {
                     trophiesEarned = 0;
                 }
             } else {
+                // Pass the managedPlayer (which now has the correct current game stats) to calculatePointsEarned
                 pointsEarned = calculatePointsEarned(managedPlayer, position, rankedPlayers.size(), game);
                 coinsEarned = calculateCoinsEarned(position);
                 trophiesEarned = (position == 1) ? 1 : 0; 
             }
             
             String performanceMessage = generatePerformanceMessage(managedPlayer, position, isTwoPlayerGame, game);
-            int diceCount = getDiceCountFromGame(game, String.valueOf(managedPlayer.getId()));
+            // getDiceCountFromGame should ideally use the player instance from the game object if still active,
+            // or rely on a snapshot if player was eliminated. For simplicity, let's assume originalPlayerInstance's dice count is final.
+            // However, dice are managed on Player objects within the Game's `players` list primarily.
+            // The `getDiceCountFromGame` method already fetches from `game.getPlayers()` or `game.getOriginalPlayers()` effectively.
+            int diceCount = getDiceCountFromGame(game, String.valueOf(managedPlayer.getId())); 
             
             GameEndResultDTO.PlayerGameResult result = new GameEndResultDTO.PlayerGameResult(
                 managedPlayer.getId(),
@@ -633,7 +680,7 @@ public class GameService {
                 position,
                 pointsEarned,
                 coinsEarned,
-                managedPlayer.getCurrentGameChallenges(),
+                managedPlayer.getCurrentGameChallenges(), // Use stats from managedPlayer
                 managedPlayer.getCurrentGameSuccessfulChallenges(),
                 managedPlayer.getCurrentGameEliminatedPlayers(),
                 diceCount
@@ -641,7 +688,33 @@ public class GameService {
             result.setPerformanceMessage(performanceMessage);
             playerResults.add(result);
             
+            // Update and save the managedPlayer's overall stats
             updatePlayerStatsAfterGame(managedPlayer, position, pointsEarned, coinsEarned, trophiesEarned);
+            
+            // Créer un GameRecord pour ce match (seulement s'il n'existe pas déjà)
+            boolean won = (position == 1);
+            try {
+                // Vérifier si un GameRecord existe déjà pour ce joueur et ce match
+                boolean recordExists = gameRecordRepository.existsByPlayerIdAndGameId(managedPlayer.getId(), gameId);
+                
+                if (!recordExists) {
+                    GameRecord gameRecord = new GameRecord(managedPlayer, gameId, LocalDateTime.now(), won, pointsEarned);
+                    gameRecordRepository.save(gameRecord);
+                    
+                    // Ajouter le GameRecord au joueur (pour maintenir la relation bidirectionnelle)
+                    managedPlayer.addGameRecord(gameRecord);
+                    
+                    log.info("Created GameRecord for {} in game {}: Won={}, ScoreChange={}", 
+                        managedPlayer.getUsername(), gameId, won, pointsEarned);
+                } else {
+                    log.info("GameRecord already exists for {} in game {}, skipping creation", 
+                        managedPlayer.getUsername(), gameId);
+                }
+            } catch (Exception e) {
+                log.error("Error creating GameRecord for {} in game {}: {}", 
+                    managedPlayer.getUsername(), gameId, e.getMessage());
+                // Ne pas faire échouer le traitement complet pour une erreur de GameRecord
+            }
         }
         
         log.info("Game {} ended. Results calculated for {} players", gameId, playerResults.size());
@@ -651,52 +724,48 @@ public class GameService {
     /**
      * Create player ranking based on elimination order and final dice count
      */
-    private List<Player> createPlayerRanking(List<Player> allOriginalPlayersInput, Player winner, Game game) {
+    private List<Player> createPlayerRanking(List<Player> playersToRank, Player winner, Game game) {
         Set<Long> processedPlayerIdsForRanking = new HashSet<>();
         List<Player> ranking = new ArrayList<>();
 
-        // Assurer que allOriginalPlayersInput ne contient que des instances uniques basées sur l'ID pour le traitement.
-        // Ceci est important si la liste source peut contenir des doublons logiques (même ID, instances différentes).
-        Map<Long, Player> distinctOriginalPlayerMap = allOriginalPlayersInput.stream()
+        // playersToRank are the originalPlayer instances with their final game stats
+        Map<Long, Player> distinctPlayerMap = playersToRank.stream()
             .filter(p -> p != null && p.getId() != null)
             .collect(Collectors.toMap(
                 Player::getId,
                 p -> p,
-                (existing, replacement) -> existing // Garder le premier rencontré en cas de doublon d'ID dans l'input
+                (existing, replacement) -> existing 
             ));
-        List<Player> distinctOriginalPlayers = new ArrayList<>(distinctOriginalPlayerMap.values());
 
         // Winner is always first
         if (winner != null) {
-            Player managedWinner = distinctOriginalPlayerMap.getOrDefault(winner.getId(), winner); // Préférer l'instance de notre liste distincte
-            if (processedPlayerIdsForRanking.add(managedWinner.getId())) { 
-                ranking.add(managedWinner);
+            Player winnerInstance = distinctPlayerMap.get(winner.getId());
+            if (winnerInstance != null && processedPlayerIdsForRanking.add(winnerInstance.getId())) { 
+                ranking.add(winnerInstance);
             }
         }
         
-        List<Player> remainingPlayers = distinctOriginalPlayers.stream()
+        List<Player> remainingPlayers = playersToRank.stream()
             .filter(p -> winner == null || !p.getId().equals(winner.getId())) 
-            .filter(p -> !processedPlayerIdsForRanking.contains(p.getId())) // Ne pas ajouter si déjà dans le classement (ex: si c'était le gagnant)
+            .filter(p -> p != null && p.getId() != null && !processedPlayerIdsForRanking.contains(p.getId()))
             .sorted((p1, p2) -> {
-                int dice1 = getDiceCountFromGame(game, String.valueOf(p1.getId()));
+                // p1 and p2 are instances from playersToRank (originalPlayers)
+                int dice1 = getDiceCountFromGame(game, String.valueOf(p1.getId())); // Reflects final dice count
                 int dice2 = getDiceCountFromGame(game, String.valueOf(p2.getId()));
                 if (dice1 != dice2) {
-                    return Integer.compare(dice2, dice1); 
+                    return Integer.compare(dice2, dice1); // More dice = better rank
                 }
-                // Utiliser les stats de jeu en cours DEPUIS la liste distinctOriginalPlayers
-                Player originalP1 = distinctOriginalPlayerMap.get(p1.getId());
-                Player originalP2 = distinctOriginalPlayerMap.get(p2.getId());
 
-                int activity1 = (originalP1 != null ? originalP1.getCurrentGameSuccessfulChallenges() + originalP1.getCurrentGameEliminatedPlayers() : 0);
-                int activity2 = (originalP2 != null ? originalP2.getCurrentGameSuccessfulChallenges() + originalP2.getCurrentGameEliminatedPlayers() : 0);
+                // Use the current game stats directly from p1 and p2 (which are from originalPlayers)
+                int activity1 = p1.getCurrentGameSuccessfulChallenges() + p1.getCurrentGameEliminatedPlayers();
+                int activity2 = p2.getCurrentGameSuccessfulChallenges() + p2.getCurrentGameEliminatedPlayers();
                 if (activity1 != activity2) {
-                    return Integer.compare(activity2, activity1); 
+                    return Integer.compare(activity2, activity1); // More activity = better rank
                 }
-                return p1.getId().compareTo(p2.getId()); // Fallback pour un ordre déterministe
+                return p1.getId().compareTo(p2.getId()); // Fallback for deterministic order
             })
             .collect(Collectors.toList());
             
-        // Ajouter les joueurs restants, en s'assurant qu'ils n'ont pas déjà été ajoutés.
         for (Player p : remainingPlayers) {
             if (processedPlayerIdsForRanking.add(p.getId())) {
                 ranking.add(p);
@@ -705,7 +774,7 @@ public class GameService {
         
         log.info("Player ranking created. Size: {}. Players: {}", 
             ranking.size(), 
-            ranking.stream().map(p -> "ID: " + p.getId() + " User: " + p.getUsername()).collect(Collectors.toList()));
+            ranking.stream().map(p -> "ID: " + p.getId() + " User: " + p.getUsername() + " Dice: " + getDiceCountFromGame(game, String.valueOf(p.getId())) + " Act: "+ (p.getCurrentGameSuccessfulChallenges() + p.getCurrentGameEliminatedPlayers())).collect(Collectors.toList()));
 
         return ranking;
     }
@@ -831,7 +900,8 @@ public class GameService {
     private void updatePlayerStatsAfterGame(Player player, int position, int pointsEarned, int coinsEarned, int trophiesEarned) {
         // Update game counts
         player.setGamesPlayed(player.getGamesPlayed() + 1);
-        if (position == 1) {
+        boolean won = (position == 1);
+        if (won) {
             player.setGamesWon(player.getGamesWon() + 1);
         }
         
@@ -867,16 +937,19 @@ public class GameService {
     }
 
     private int getDiceCountFromGame(Game game, String playerId) {
-        Player gamePlayer = game.getPlayers().stream()
-            .filter(p -> String.valueOf(p.getId()).equals(playerId))
-            .findFirst()
-            .orElse(null);
-        
-        if (gamePlayer != null && gamePlayer.getDice() != null) {
-            return gamePlayer.getDice().size();
+        Long pId = Long.parseLong(playerId);
+        // First, check active players in the game
+        Player playerInGame = game.getPlayers().stream()
+                                .filter(p -> p.getId().equals(pId))
+                                .findFirst().orElse(null);
+        if (playerInGame != null) {
+            return playerInGame.getDiceCount();
         }
-        
-        // Player was eliminated, so 0 dice remaining
-        return 0;
+        // If not in active players (eliminated), check original players list for their last state
+        // This part is tricky if originalPlayers list isn't updated with dice counts upon elimination.
+        // For now, assume if they are not in game.getPlayers(), their dice count is 0 for ranking purposes (they were eliminated).
+        // The ChallengeResultDTO handles showing dice at the moment of challenge.
+        // For final ranking, 0 dice if eliminated is usually correct.
+        return 0; 
     }
 }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './shop.css';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../Auth/authcontext';
 
 // Images pour les produits
 const productImages = {
@@ -17,12 +18,13 @@ const productImages = {
 };
 
 const Shop = () => {
+  const { user: authUser, updateUser, isAuthenticated: authIsAuthenticated } = useAuth();
   const [playerId, setPlayerId] = useState(null);
-  const [pieces, setPieces] = useState(0);
-  const [username, setUsername] = useState('');
+  const [pieces, setPieces] = useState(authUser?.pieces || 0);
+  const [username, setUsername] = useState(authUser?.username || '');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(authIsAuthenticated);
   const [buyLoading, setBuyLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [products, setProducts] = useState([]);
@@ -44,45 +46,31 @@ const Shop = () => {
   }, []);
 
   useEffect(() => {
-    // Récupérer les infos utilisateur du localStorage
-    const getUserInfo = () => {
-      try {
+    if (authUser) {
+      setPlayerId(authUser.id || authUser.player_id);
+      setUsername(authUser.username || '');
+      setPieces(authUser.pieces !== undefined ? authUser.pieces : 0);
+      setIsAuthenticated(true);
+      setLoading(false);
+    } else {
         const userStr = localStorage.getItem('user');
         if (userStr) {
-          console.log("Informations utilisateur trouvées:", userStr);
-          const user = JSON.parse(userStr);
-          console.log("Informations utilisateur décodées:", user);
-          
-          if (user.player_id) {
-            setPlayerId(user.player_id);
+          try {
+            const user = JSON.parse(userStr);
+            setPlayerId(user.id || user.player_id);
+            setUsername(user.username || '');
+            setPieces(user.pieces !== undefined ? user.pieces : 0);
             setIsAuthenticated(true);
-          } else if (user.id) {
-            // Format alternatif possible
-            setPlayerId(user.id);
-            setIsAuthenticated(true);
-          }
-          
-          // Si les pièces sont disponibles dans le localStorage, les utiliser
-          if (user.pieces !== undefined) {
-            setPieces(user.pieces);
-          }
-          if (user.username) {
-            setUsername(user.username);
-            setIsAuthenticated(true);
+          } catch (e) {
+            console.error("Failed to parse user from localStorage in Shop:", e);
+            setIsAuthenticated(false);
           }
         } else {
-          console.log("Aucune information utilisateur trouvée dans localStorage");
+            setIsAuthenticated(false);
         }
-      } catch (err) {
-        console.error('Erreur lors de la récupération des données utilisateur:', err);
-        setError('Erreur lors de la récupération des données utilisateur');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getUserInfo();
-  }, []);
+      setLoading(false);
+    }
+  }, [authUser]);
 
   // Récupère le profil du joueur et met à jour le nombre de pièces
   useEffect(() => {
@@ -91,46 +79,34 @@ const Shop = () => {
         console.log("Impossible de récupérer le profil: ID joueur manquant");
         return;
       }
+      if (!isAuthenticated) {
+          return;
+      }
       
       try {
-        console.log(`Récupération du profil du joueur ${playerId}...`);
-        // Utiliser axios au lieu de fetch pour être plus compatible
+        console.log(`Récupération du profil du joueur ${playerId} pour le Shop...`);
         const response = await axios.get(`http://localhost:8080/api/players/${playerId}`);
         if (response.status === 200) {
-          console.log("Profil récupéré avec succès:", response.data);
+          console.log("Profil récupéré avec succès pour le Shop:", response.data);
           setPieces(response.data.pieces);
-          setIsAuthenticated(true);
+          if (updateUser && authUser && response.data.pieces !== authUser.pieces) {
+            updateUser({ pieces: response.data.pieces });
+          }
         }
       } catch (err) {
-        console.error('Erreur lors de la récupération du profil:', err);
-        setError('Erreur de connexion au serveur');
+        console.error('Erreur lors de la récupération du profil pour le Shop:', err);
       }
     };
 
-    if (playerId) {
+    if (playerId && isAuthenticated) {
       fetchPlayerProfile();
     }
-  }, [playerId]);
+  }, [playerId, isAuthenticated, updateUser, authUser]);
 
   const handleBuy = async (productId) => {
-    // Vérifier si l'utilisateur est connecté en vérifiant à la fois playerId et isAuthenticated
     if (!isAuthenticated || !playerId) {
       console.log("Tentative d'achat sans être connecté. ID:", playerId, "Auth:", isAuthenticated);
       setMessage({ type: 'error', text: "Vous devez être connecté !" });
-      
-      // Rechercher à nouveau les informations utilisateur au cas où
-      const userStr = localStorage.getItem('user');
-      if (userStr) {
-        try {
-          const user = JSON.parse(userStr);
-          console.log("Informations utilisateur au moment de l'achat:", user);
-          if (user.player_id || user.id) {
-            window.location.reload(); // Recharger la page pour tenter de récupérer l'ID
-          }
-        } catch (e) {
-          console.error("Erreur lors de la lecture des données utilisateur:", e);
-        }
-      }
       return;
     }
     
@@ -146,96 +122,90 @@ const Shop = () => {
       
       if (response.status === 200) {
         console.log("Achat réussi:", response.data);
-        // Mettre à jour le profil après l'achat
-        const updatedProfile = await axios.get(`http://localhost:8080/api/players/${playerId}`);
-        setPieces(updatedProfile.data.pieces);
+        const productPrice = products.find(p => p.id === productId)?.price || 0;
+        const currentPieces = authUser?.pieces !== undefined ? authUser.pieces : pieces;
+        const newPieces = response.data.newPieceCount !== undefined 
+            ? response.data.newPieceCount 
+            : currentPieces - productPrice;
         
-        // Mettre à jour le localStorage également
-        const userStr = localStorage.getItem('user');
-        if (userStr) {
-          const user = JSON.parse(userStr);
-          user.pieces = updatedProfile.data.pieces;
-          localStorage.setItem('user', JSON.stringify(user));
+        setPieces(newPieces);
+
+        if (updateUser) {
+          updateUser({ pieces: newPieces });
         }
         
         setMessage({ type: 'success', text: "Achat réussi ! Rendez-vous dans votre inventaire pour équiper votre nouveau dé." });
       }
     } catch (err) {
       console.error('Erreur lors de l\'achat:', err);
-      let errorMessage = "Problème de connexion au serveur";
-      
+      let specificMessage = "Une erreur est survenue lors de l'achat.";
       if (err.response) {
-        console.log("Réponse d'erreur:", err.response);
-        if (err.response.data) {
-          if (typeof err.response.data === 'string') {
-            errorMessage = err.response.data;
-          } else if (err.response.data.message) {
-            errorMessage = err.response.data.message;
-          }
-        }
-        
-        if (err.response.status === 500) {
-          errorMessage = "Erreur serveur. Le produit existe-t-il dans la base de données?";
+        if (err.response.status === 400) {
+            specificMessage = err.response.data?.message || err.response.data || "Vous n'avez peut-être pas assez de pièces.";
+            if (typeof specificMessage === 'string' && specificMessage.toLowerCase().includes('pièces')) {
+                specificMessage = "Vous n'avez pas assez de pièces pour cet achat.";
+            }
         } else if (err.response.status === 404) {
-          errorMessage = "Produit non trouvé dans la base de données";
-        } else if (err.response.status === 400) {
-          errorMessage = "Vous n'avez pas assez de pièces pour cet achat";
+            specificMessage = "Le produit demandé n'a pas été trouvé.";
+        } else if (err.response.status === 500) {
+            specificMessage = "Erreur du serveur lors du traitement de votre achat.";
+        } else if (err.response.data?.message) {
+            specificMessage = err.response.data.message;
+        } else if (typeof err.response.data === 'string') {
+            specificMessage = err.response.data;
         }
+      } else if (err.request) {
+        specificMessage = "Aucune réponse du serveur. Vérifiez votre connexion.";
+      } else {
+        specificMessage = err.message || "Erreur inconnue lors de la configuration de la requête.";
       }
-      
-      setMessage({ type: 'error', text: `Erreur : ${errorMessage}` });
+      setMessage({ type: 'error', text: specificMessage });
     } finally {
       setBuyLoading(false);
     }
   };
 
   if (loading) {
-    return <div className="shop-container">Chargement...</div>;
+    return <div className="shop-container loading-container">Chargement...</div>;
   }
 
   return (
     <div className="shop-container">
       <h1>Shop des Skins de Dé</h1>
       
-      {username && (
-        <div style={{marginBottom: '10px', padding: '5px', backgroundColor: '#e8f4f8', borderRadius: '5px'}}>
-          Connecté en tant que: <strong>{username}</strong> (ID: {playerId})
+      <div className="user-info">
+        {isAuthenticated && username && (
+          <div className="connection-status connected">
+            Connecté en tant que: <strong>{username}</strong> (ID: {playerId})
+          </div>
+        )}
+        
+        <div className="pieces-display">
+          Vous avez : {pieces} pièces 💰
         </div>
-      )}
-      
-      <div style={{marginBottom: '20px', fontWeight: 'bold', fontSize: '18px'}}>
-        Vous avez : <span style={{color: '#4CAF50'}}>{pieces} pièces</span>
+        
+        {!isAuthenticated && (
+          <div className="connection-status disconnected">
+            Vous n'êtes pas connecté. Veuillez vous connecter pour effectuer des achats.
+          </div>
+        )}
+        
+        {isAuthenticated && (
+          <Link to="/inventory" className="inventory-link">
+            📦 Voir mon inventaire
+          </Link>
+        )}
       </div>
       
       {error && (
-        <div style={{color: 'red', marginBottom: '20px', padding: '10px', backgroundColor: '#ffeeee', borderRadius: '5px'}}>
+        <div className="message error">
           {error}
         </div>
       )}
       
       {message.text && (
-        <div style={{
-          marginBottom: '20px', 
-          padding: '10px', 
-          backgroundColor: message.type === 'error' ? '#ffeeee' : '#eeffee', 
-          color: message.type === 'error' ? '#d32f2f' : '#388e3c',
-          borderRadius: '5px'
-        }}>
+        <div className={`message ${message.type}`}>
           {message.text}
-        </div>
-      )}
-      
-      {!isAuthenticated && (
-        <div style={{color: 'red', marginBottom: '20px', padding: '10px', backgroundColor: '#ffeeee', borderRadius: '5px'}}>
-          Vous n'êtes pas connecté. Veuillez vous connecter pour effectuer des achats.
-        </div>
-      )}
-      
-      {isAuthenticated && (
-        <div style={{marginBottom: '20px'}}>
-          <Link to="/inventory" className="inventory-link">
-            Voir mon inventaire
-          </Link>
         </div>
       )}
       
@@ -248,13 +218,6 @@ const Shop = () => {
             <button 
               onClick={() => handleBuy(product.id)}
               disabled={!isAuthenticated || pieces < product.price || buyLoading}
-              style={{
-                backgroundColor: !isAuthenticated ? '#aaaaaa' : 
-                               pieces < product.price ? '#ffaaaa' : 
-                               buyLoading ? '#cccccc' : '#4CAF50',
-                cursor: !isAuthenticated || pieces < product.price || buyLoading ? 'not-allowed' : 'pointer',
-                opacity: buyLoading ? 0.7 : 1
-              }}
             >
               {!isAuthenticated ? 'Connectez-vous' : 
                pieces < product.price ? 'Pièces insuffisantes' : 
@@ -266,12 +229,15 @@ const Shop = () => {
       
       {/* Pour le débogage en développement */}
       {process.env.NODE_ENV !== 'production' && (
-        <div style={{marginTop: '30px', padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '5px'}}>
-          <h3>Informations de débogage</h3>
-          <p>ID Joueur: {playerId || 'Non défini'}</p>
-          <p>Authentifié: {isAuthenticated ? 'Oui' : 'Non'}</p>
-          <p>Nom d'utilisateur: {username || 'Non défini'}</p>
-          <p>Pièces: {pieces}</p>
+        <div style={{marginTop: '30px', padding: '10px', color: '#333', backgroundColor: 'rgba(255,255,255,0.8)', borderRadius: '5px'}}>
+          <h3>Informations de débogage (Shop)</h3>
+          <p>Auth User ID: {authUser?.id || 'N/A'}</p>
+          <p>Auth User Pieces: {authUser?.pieces ?? 'N/A'}</p>
+          <p>Auth User Trophies: {authUser?.trophies ?? 'N/A'}</p>
+          <p>Local Player ID: {playerId || 'Non défini'}</p>
+          <p>Local IsAuthenticated: {isAuthenticated ? 'Oui' : 'Non'}</p>
+          <p>Local Username: {username || 'Non défini'}</p>
+          <p>Local Pieces: {pieces}</p>
         </div>
       )}
     </div>

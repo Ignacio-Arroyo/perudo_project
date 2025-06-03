@@ -19,10 +19,16 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Table;
 import jakarta.persistence.OrderColumn;
+import jakarta.persistence.Transient;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 
 @Entity
 @Table(name = "games")
+@JsonIdentityInfo(
+  generator = ObjectIdGenerators.PropertyGenerator.class,
+  property = "id")
 public class Game {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -61,11 +67,18 @@ public class Game {
     
     private int currentTurnIndex = 0;
 
+    // To store all players who started the game, for end-game stats
+    // This list will hold references to the Player entities involved at the start.
+    // The Player entities themselves are managed by JPA.
+    @Transient // Marking as transient as we are not mapping it as a direct persistent collection here
+    private List<Player> originalPlayers = new ArrayList<>();
+
     public Game() {
         this.status = GameStatus.WAITING;
         this.round = 0;
         this.players = new ArrayList<>();
         this.turnSequence = new ArrayList<>();
+        this.originalPlayers = new ArrayList<>(); // Initialize in constructor
     }
 
     // Getters et Setters de base
@@ -165,6 +178,14 @@ public class Game {
 
     public void setTurnSequence(List<Player> sequence) {
         this.turnSequence = sequence;
+    }
+
+    public List<Player> getOriginalPlayers() {
+        return originalPlayers;
+    }
+
+    public void setOriginalPlayers(List<Player> originalPlayers) {
+        this.originalPlayers = originalPlayers;
     }
 
     // Méthodes de gestion des joueurs

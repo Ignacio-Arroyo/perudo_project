@@ -23,6 +23,7 @@ import perudo_backend.perudo_backend.dto.GameEndResultDTO;
 import perudo_backend.perudo_backend.services.*;
 import perudo_backend.perudo_backend.repositories.PlayerRepository;
 import perudo_backend.exception.PlayerNotFoundException;
+import perudo_backend.exception.NotYourTurnException;
 import perudo_backend.perudo_backend.Dice;
 import perudo_backend.perudo_backend.GameStatus;
 import perudo_backend.exception.NotEnoughPlayersException;
@@ -139,12 +140,21 @@ public class GameController {
             messagingTemplate.convertAndSend("/topic/game/" + gameId + "/state", gameState);
             
             log.info("Game state broadcasted after bid");
-        } catch (Exception e) {
-            log.error("Error processing bid: ", e);
+        } catch (IllegalArgumentException | NotYourTurnException e) { // Catch specific, expected exceptions
+            log.warn("Invalid bid or turn error for game {}: {}", gameId, e.getMessage());
+            GameStateDTO currentActualState = gameService.getGameState(gameId); // Get the true current state
+            currentActualState.setErrorMessage(e.getMessage());
+            // Optionally, set a specific status if needed, but GameService might not have changed it yet
+            // currentActualState.setStatus(GameStatus.ERROR); // Or keep the game's actual current status
+            messagingTemplate.convertAndSend("/topic/game/" + gameId + "/state", currentActualState);
+        } catch (Exception e) { // Catch other unexpected exceptions
+            log.error("Unexpected error processing bid for game {}: ", gameId, e);
+            // For unexpected errors, sending a minimal error DTO might still be appropriate
+            // or try to get current state if possible, but it might be corrupted.
             GameStateDTO errorState = new GameStateDTO(
                 gameId,
                 GameStatus.ERROR,
-                e.getMessage()
+                "An unexpected server error occurred while processing your bid."
             );
             messagingTemplate.convertAndSend("/topic/game/" + gameId + "/state", errorState);
         }
@@ -222,7 +232,16 @@ public class GameController {
             
             // If the game is finished, broadcast the final result
             if (gameState.getStatus() == GameStatus.FINISHED) {
-                log.info("Game {} finished after challenge", gameId);
+                log.info("Game {} finished after challenge. Triggering end results calculation.", gameId);
+                // Game is finished, calculate and broadcast final results
+                // No need to pass players in request body anymore as GameService uses game.getOriginalPlayers()
+                GameEndResultDTO endResults = gameService.calculateGameEndResults(gameId);
+                if (endResults != null) {
+                    messagingTemplate.convertAndSend("/topic/game/" + gameId + "/results", endResults);
+                    log.info("Game end results broadcasted for game {}", gameId);
+                } else {
+                    log.warn("Failed to calculate or broadcast end results for game {}", gameId);
+                }
             }
             
         } catch (Exception e) {
@@ -323,71 +342,43 @@ public class GameController {
     }
     
     @PostMapping("/{gameId}/end-results")
-    public ResponseEntity<GameEndResultDTO> getGameEndResults(
-            @PathVariable String gameId,
-            @RequestBody Map<String, Object> request) {
+    public ResponseEntity<GameEndResultDTO> triggerGameEndResults(@PathVariable String gameId) {
+        // This endpoint can now be simplified if the frontend doesn't need to send player stats,
+        // as GameService will use game.getOriginalPlayers()
+        // However, the current GameService.calculateGameEndResults still uses playerRepository.findById
+        // and copies stats from originalPlayerInstance to managedPlayer. 
+        // The key is that originalPlayerInstance comes from game.getOriginalPlayers() which has updated stats.
+
+        // For now, this endpoint can be a manual trigger if needed, or called by the frontend
+        // when it observes GameStatus.FINISHED, without a complex body.
         try {
-            // Get the list of all original players from the request
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> playerMaps = (List<Map<String, Object>>) request.get("players");
-            
-            if (playerMaps == null || playerMaps.isEmpty()) {
-                log.error("No players provided for game end results calculation");
-                return ResponseEntity.badRequest().build();
-            }
-            
-            // Get the current game state to access dice information
+            log.info("Received request to calculate end results for game: {}", gameId);
             Game game = gameService.findById(gameId);
-            
-            // Fetch real Player objects from the database and update their current game activities
-            List<Player> allOriginalPlayers = new ArrayList<>();
-            
-            for (Map<String, Object> playerMap : playerMaps) {
-                Long playerId = Long.parseLong(playerMap.get("id").toString());
-                
-                // Fetch the real player from the database
-                Player player = playerRepository.findById(playerId)
-                    .orElseThrow(() -> new PlayerNotFoundException("Player not found: " + playerId));
-                
-                // Update current game activity from the request
-                if (playerMap.containsKey("currentGameChallenges")) {
-                    player.setCurrentGameChallenges((Integer) playerMap.get("currentGameChallenges"));
-                }
-                if (playerMap.containsKey("currentGameSuccessfulChallenges")) {
-                    player.setCurrentGameSuccessfulChallenges((Integer) playerMap.get("currentGameSuccessfulChallenges"));
-                }
-                if (playerMap.containsKey("currentGameEliminatedPlayers")) {
-                    player.setCurrentGameEliminatedPlayers((Integer) playerMap.get("currentGameEliminatedPlayers"));
-                }
-                
-                // Set dice count from game state (we don't need the actual Dice objects, just the count)
-                Player gamePlayer = game.getPlayers().stream()
-                    .filter(p -> p.getId().equals(playerId))
-                    .findFirst()
-                    .orElse(null);
-                
-                if (gamePlayer != null && gamePlayer.getDice() != null) {
-                    // We'll pass the dice count to the service method instead of setting dice on the player
-                    // This avoids the Hibernate TransientObjectException
-                    log.info("Player {} has {} dice remaining", player.getUsername(), gamePlayer.getDice().size());
-                }
-                
-                allOriginalPlayers.add(player);
+            if (game.getStatus() != GameStatus.FINISHED) {
+                log.warn("Attempt to calculate results for game {} that is not FINISHED. Status: {}", gameId, game.getStatus());
+                // Optionally return a specific response if game is not finished
+                // For now, proceed and let GameService handle it (it also checks status)
             }
-            
-            GameEndResultDTO results = gameService.calculateGameEndResults(gameId, allOriginalPlayers);
+
+            GameEndResultDTO results = gameService.calculateGameEndResults(gameId);
             
             if (results == null) {
-                log.warn("Could not calculate end results for game {}", gameId);
-                return ResponseEntity.notFound().build();
+                log.warn("Could not calculate end results for game {} (service returned null)", gameId);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null); // Or NOT_FOUND if game finished but no results
             }
             
-            log.info("Game end results calculated for game {}: {} players ranked", gameId, results.getPlayerResults().size());
+            // Broadcasting should ideally happen once, perhaps after processChallenge if that's what finishes the game.
+            // If this endpoint is just for explicit calculation, maybe broadcasting here is fine too or redundant.
+            // The processChallenge block above now handles broadcasting /results if game is finished.
+            log.info("Game end results calculated for game {}: {} players ranked. Results will be/were broadcasted.", gameId, results.getPlayerResults().size());
             return ResponseEntity.ok(results);
             
+        } catch (GameNotFoundException e) {
+            log.error("Game not found when trying to calculate end results for game {}: {}", gameId, e.getMessage());
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
             log.error("Error calculating game end results for game {}: {}", gameId, e.getMessage(), e);
-            return ResponseEntity.status(500).body(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 }

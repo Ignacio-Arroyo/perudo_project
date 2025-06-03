@@ -11,6 +11,7 @@ import perudo_backend.perudo_backend.Product;
 import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "players")
@@ -32,6 +33,7 @@ public class Player {
 
     private boolean hasRolled;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Dice> dice = new ArrayList<>();
 
@@ -39,9 +41,11 @@ public class Player {
     @JoinColumn(name = "game_id")
     private Game game;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "winner", fetch = FetchType.LAZY)
     private List<Game> wonGames = new ArrayList<>();
 
+    @JsonIgnore
     @OneToMany(mappedBy = "currentPlayer", fetch = FetchType.LAZY)
     private List<Game> currentGames = new ArrayList<>();
 
@@ -51,14 +55,17 @@ public class Player {
         joinColumns = @JoinColumn(name = "player_id"),
         inverseJoinColumns = @JoinColumn(name = "friend_id")
     )
+    @JsonIgnore
     private Set<Player> friends = new HashSet<>();
 
+    @JsonIgnore
     @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GameRecord> gameRecords = new ArrayList<>();
 
     // --- AJOUTS POUR COMPATIBILITÉ ---
     private int pieces;
     private int trophies;
+    @JsonIgnore
     @OneToMany
     private List<Product> inventory = new ArrayList<>();
     private Integer equippedProduct;
@@ -91,6 +98,7 @@ public class Player {
         this.gameRecords = new ArrayList<>();
         this.inventory = new ArrayList<>();
         this.equippedProduct = null;
+        resetCurrentGameStats();
     }
 
     public Player(String nom, String prenom, String username, String password) {
@@ -209,14 +217,6 @@ public class Player {
         this.winRate = winRate;
     }
 
-    public Set<Player> getFriends() {
-        return friends;
-    }
-
-    public void setFriends(Set<Player> friends) {
-        this.friends = friends;
-    }
-
     public List<GameRecord> getGameRecords() {
         return gameRecords;
     }
@@ -254,16 +254,6 @@ public class Player {
     }
 
     // Helper methods for managing relationships
-    public void addFriend(Player friend) {
-        this.friends.add(friend);
-        friend.getFriends().add(this);
-    }
-
-    public void removeFriend(Player friend) {
-        this.friends.remove(friend);
-        friend.getFriends().remove(this);
-    }
-
     public void addGameRecord(GameRecord gameRecord) {
         if (!this.gameRecords.contains(gameRecord)) {
             this.gameRecords.add(gameRecord);
@@ -352,4 +342,31 @@ public class Player {
     public void setCurrentGameEliminatedPlayers(int currentGameEliminatedPlayers) { this.currentGameEliminatedPlayers = currentGameEliminatedPlayers; }
     public int getFinalPosition() { return finalPosition; }
     public void setFinalPosition(int finalPosition) { this.finalPosition = finalPosition; }
+
+    // Method to reset transient stats for a new game
+    public void resetCurrentGameStats() {
+        this.currentGameChallenges = 0;
+        this.currentGameSuccessfulChallenges = 0;
+        this.currentGameEliminatedPlayers = 0;
+        this.finalPosition = 0;
+    }
+
+    // Rétablir les getters/setters et méthodes pour friends
+    public Set<Player> getFriends() {
+        return friends;
+    }
+
+    public void setFriends(Set<Player> friends) {
+        this.friends = friends;
+    }
+
+    public void addFriend(Player friend) {
+        this.friends.add(friend);
+        friend.getFriends().add(this);
+    }
+
+    public void removeFriend(Player friend) {
+        this.friends.remove(friend);
+        friend.getFriends().remove(this);
+    }
 }

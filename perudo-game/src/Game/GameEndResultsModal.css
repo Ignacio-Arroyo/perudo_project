@@ -1,0 +1,145 @@
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content.game-end-modal {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    width: 90%;
+    max-width: 700px;
+    text-align: center;
+    animation: fadeInModal 0.3s ease-out;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+}
+
+@keyframes fadeInModal {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.game-end-modal h2 {
+    color: #ffd89b;
+    margin-bottom: 15px;
+    font-size: 2.5rem;
+    font-weight: 800;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.game-end-modal .winner-announcement {
+    font-size: 1.5em;
+    color: #ffd700;
+    margin-bottom: 15px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.game-end-modal hr {
+    border: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    margin: 20px 0;
+}
+
+.game-end-modal h3 {
+    color: #e8f4f8;
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.results-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: 0.9em;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.results-table th, .results-table td {
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 10px;
+    text-align: left;
+}
+
+.results-table th {
+    background: rgba(255,255,255,0.2);
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.results-table tbody tr:nth-child(even) {
+    background: rgba(255,255,255,0.05);
+}
+
+.results-table tbody tr:hover {
+    background: rgba(255,255,255,0.15);
+}
+
+.results-table .current-user-row {
+    background: rgba(255, 215, 0, 0.3) !important;
+    font-weight: bold;
+    color: #fff;
+}
+
+.results-table td {
+    color: #fff;
+    font-weight: 500;
+}
+
+.performance-message {
+    font-style: italic;
+    color: #e8f4f8;
+    margin-bottom: 8px;
+    text-align: left;
+    padding: 10px;
+    border-left: 3px solid #ffd700;
+    background: rgba(255,255,255,0.1);
+    border-radius: 5px;
+    backdrop-filter: blur(5px);
+}
+
+.return-home-button {
+    background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 1em;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight: 600;
+    box-shadow: 0 8px 32px rgba(255, 107, 107, 0.4);
+}
+
+.return-home-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(255, 107, 107, 0.6);
+    background: linear-gradient(45deg, #ff5252, #d63031);
+}
+
+.dice-face-small {
+    font-size: 1.1em;
+    margin: 0 2px;
+    color: #fff;
+} 

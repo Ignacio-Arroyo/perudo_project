@@ -17,8 +17,8 @@ public class Dice {
     @JoinColumn(name = "player_id")
     private Player player;  // Change from Collection<Player> owners to single Player
 
-    @ManyToOne
-    @JoinColumn(name = "store_id")
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "store_id", nullable = true)
     private Store store;
 
     private int value;

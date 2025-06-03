@@ -36,6 +36,7 @@ function NavScrollExample() {
               <>
                 <Nav.Link as={Link} to="/inventory">Inventory</Nav.Link>
                 <Nav.Link as={Link} to="/friends">Friends</Nav.Link>
+                <Nav.Link as={Link} to="/match-history">Match History</Nav.Link>
               </>
             )}
           </Nav>

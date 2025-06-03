@@ -529,6 +529,53 @@ button:hover {
     box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
 }
 
+/* Custom colored dice styles */
+.your-dice .die.custom-dice,
+.dice-list .die.custom-dice {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.your-dice .die.custom-dice::before,
+.dice-list .die.custom-dice::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: inherit;
+    border-radius: inherit;
+    opacity: 0.1;
+    transition: opacity 0.3s ease;
+}
+
+.your-dice .die.custom-dice:hover,
+.dice-list .die.custom-dice:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+}
+
+.your-dice .die.custom-dice:hover::before,
+.dice-list .die.custom-dice:hover::before {
+    opacity: 0.2;
+}
+
+/* Animation for dice rolling effect */
+@keyframes diceRoll {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(90deg); }
+    50% { transform: rotate(180deg); }
+    75% { transform: rotate(270deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.your-dice .die.rolling,
+.dice-list .die.rolling {
+    animation: diceRoll 0.5s ease-in-out;
+}
+
 /* Game status indicators */
 .current-turn {
     background-color: #28a745;

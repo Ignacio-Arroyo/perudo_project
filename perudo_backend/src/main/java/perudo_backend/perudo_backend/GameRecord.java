@@ -4,7 +4,8 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "game_records")
+@Table(name = "game_records", 
+       uniqueConstraints = @UniqueConstraint(columnNames = {"player_id", "game_id"}))
 public class GameRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -13,6 +14,9 @@ public class GameRecord {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "player_id", nullable = false)
     private Player player;
+
+    @Column(name = "game_id", nullable = false)
+    private String gameId;
 
     @Column(nullable = false)
     private LocalDateTime playedAt;
@@ -27,8 +31,9 @@ public class GameRecord {
     public GameRecord() {
     }
 
-    public GameRecord(Player player, LocalDateTime playedAt, boolean won, int scoreChange) {
+    public GameRecord(Player player, String gameId, LocalDateTime playedAt, boolean won, int scoreChange) {
         this.player = player;
+        this.gameId = gameId;
         this.playedAt = playedAt;
         this.won = won;
         this.scoreChange = scoreChange;
@@ -49,6 +54,14 @@ public class GameRecord {
 
     public void setPlayer(Player player) {
         this.player = player;
+    }
+
+    public String getGameId() {
+        return gameId;
+    }
+
+    public void setGameId(String gameId) {
+        this.gameId = gameId;
     }
 
     public LocalDateTime getPlayedAt() {

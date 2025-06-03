@@ -18,6 +18,7 @@ import GamePage from '../Game/GamePage';
 import GameBoard from '../Game/GameBoard';
 import ProductList from '../ProductList/product_list';
 import Inventory from '../Inventory/Inventory';
+import MatchHistory from '../MatchHistory/MatchHistory';
 import { AuthProvider } from '../Auth/authcontext';
 import TestCoins from './TestCoins';
 import UpdatePlayerCoinsPage from './UpdatePlayerCoinsPage';
@@ -40,6 +41,7 @@ function App() {
             <Route path="/shop" element={<Shop />} />
             <Route path="/products" element={<ProductList />} />
             <Route path="/inventory" element={<Inventory />} />
+            <Route path="/match-history" element={<MatchHistory />} />
             <Route path="/test-coins" element={<TestCoins />} />
             <Route path="/update-player-coins" element={<UpdatePlayerCoinsPage />} />
             <Route path="/friends" element={<FriendsPage />} />

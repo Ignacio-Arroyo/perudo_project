@@ -3,7 +3,7 @@ import axios from 'axios';
 import SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
 import { useAuth } from '../Auth/authcontext';
-import GameEndResults from './GameEndResults';
+import GameEndResultsModal from './GameEndResultsModal';
 import './gameboard.css';
 
 const axiosConfig = {
@@ -11,6 +11,85 @@ const axiosConfig = {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
     }
+};
+
+// Mapping des couleurs de dés selon l'ID du produit équipé
+const diceColorMapping = {
+    1: { // Dé Bois
+        background: 'linear-gradient(145deg, #d4a574, #b8935e)',
+        border: '#8b6f47',
+        color: '#2c1810',
+        shadow: 'rgba(139, 111, 71, 0.3)'
+    },
+    2: { // Dé Rouge
+        background: 'linear-gradient(145deg, #ff4757, #ff3838)',
+        border: '#c0392b',
+        color: '#ffffff',
+        shadow: 'rgba(192, 57, 43, 0.3)'
+    },
+    3: { // Dé Orange
+        background: 'linear-gradient(145deg, #ff9500, #ff7675)',
+        border: '#e17055',
+        color: '#ffffff',
+        shadow: 'rgba(225, 112, 85, 0.3)'
+    },
+    4: { // Dé Multicolore
+        background: 'linear-gradient(145deg, #ff6b6b, #4ecdc4, #45b7d1, #f39c12)',
+        border: '#2d3436',
+        color: '#ffffff',
+        shadow: 'rgba(45, 52, 54, 0.3)'
+    },
+    5: { // Dé Gris/Noir
+        background: 'linear-gradient(145deg, #636e72, #2d3436)',
+        border: '#000000',
+        color: '#ffffff',
+        shadow: 'rgba(0, 0, 0, 0.3)'
+    },
+    6: { // Dé Vert
+        background: 'linear-gradient(145deg, #00b894, #00a085)',
+        border: '#006f5e',
+        color: '#ffffff',
+        shadow: 'rgba(0, 111, 94, 0.3)'
+    },
+    7: { // Dé Bleu Clair
+        background: 'linear-gradient(145deg, #74b9ff, #0984e3)',
+        border: '#2d3436',
+        color: '#ffffff',
+        shadow: 'rgba(45, 52, 54, 0.3)'
+    },
+    8: { // Dé Bleu
+        background: 'linear-gradient(145deg, #0984e3, #6c5ce7)',
+        border: '#2d3436',
+        color: '#ffffff',
+        shadow: 'rgba(45, 52, 54, 0.3)'
+    },
+    9: { // Dé Noir
+        background: 'linear-gradient(145deg, #2d3436, #000000)',
+        border: '#636e72',
+        color: '#ffffff',
+        shadow: 'rgba(99, 110, 114, 0.3)'
+    },
+    default: { // Dé par défaut (blanc)
+        background: 'linear-gradient(145deg, #ffffff, #f1f2f6)',
+        border: '#007bff',
+        color: '#007bff',
+        shadow: 'rgba(0, 123, 255, 0.2)'
+    }
+};
+
+// Define DiceFace component here if not imported from elsewhere
+const DiceFace = ({ value, isHighlighted }) => {
+    const diceSymbols = [
+        '', // 0 index
+        <span role="img" aria-label="dice value 1">⚀</span>, // 1
+        <span role="img" aria-label="dice value 2">⚁</span>, // 2
+        <span role="img" aria-label="dice value 3">⚂</span>, // 3
+        <span role="img" aria-label="dice value 4">⚃</span>, // 4
+        <span role="img" aria-label="dice value 5">⚄</span>, // 5
+        <span role="img" aria-label="dice value 6">⚅</span>  // 6
+    ];
+    const highlightClass = isHighlighted ? 'highlighted-die' : '';
+    return <span className={`dice-face ${highlightClass}`}>{diceSymbols[value] || value}</span>;
 };
 
 const GameBoard = () => {
@@ -38,11 +117,35 @@ const GameBoard = () => {
     const [challengeResult, setChallengeResult] = useState(null);
     const [showChallengeResult, setShowChallengeResult] = useState(false);
     const challengeResultTimerRef = useRef(null);
+    const [equippedDiceId, setEquippedDiceId] = useState(null);
 
     // Game end and scoring state
-    const [allOriginalPlayers, setAllOriginalPlayers] = useState([]);
-    const [showGameEndResults, setShowGameEndResults] = useState(false);
-    const [isSpectating, setIsSpectating] = useState(false);
+    const [gameEndData, setGameEndData] = useState(null);
+    const [showGameEndModal, setShowGameEndModal] = useState(false);
+
+    // Récupérer l'ID du dé équipé depuis le localStorage
+    useEffect(() => {
+        const getUserEquippedDice = () => {
+            try {
+                const userStr = localStorage.getItem('user');
+                if (userStr) {
+                    const userData = JSON.parse(userStr);
+                    const equippedProduct = userData.equippedProduct || userData.equippedDice;
+                    console.log('Equipped dice ID found:', equippedProduct);
+                    setEquippedDiceId(equippedProduct);
+                }
+            } catch (error) {
+                console.error('Error getting equipped dice from localStorage:', error);
+            }
+        };
+
+        getUserEquippedDice();
+    }, []);
+
+    // Fonction pour obtenir les styles du dé selon l'ID équipé
+    const getDiceStyles = (equippedId) => {
+        return diceColorMapping[equippedId] || diceColorMapping.default;
+    };
 
     // All useEffect hooks grouped here
     useEffect(() => { // Turn sequence initialization
@@ -50,25 +153,57 @@ const GameBoard = () => {
             console.log('Initializing turn sequence from players:', gameState.players);
             setGameState(prev => ({ ...prev, turnSequence: [...prev.players] }));
         }
-    }, [gameState.status, gameState.players]);
+    }, [gameState.status, gameState.players, gameState.turnSequence]);
 
-    useEffect(() => { // STOMP connection and subscriptions
+    useEffect(() => { // STOMP connection and initial lobby subscription
         const socket = new SockJS('http://localhost:8080/ws');
         const client = Stomp.over(socket);
         
         client.connect({}, () => {
             setStompClient(client);
+            console.log("STOMP client connected.");
             
+            // Subscribe to the general lobby topic for game creation/listing
             client.subscribe('/topic/lobby', (message) => {
-                console.log('Raw message received:', message);
+                console.log('Raw lobby message received:', message.body);
                 try {
-                    const gameData = JSON.parse(message.body);
-                    if (!gameData || !gameData.id || gameData.id === 'null') {
-                        console.error('Invalid game ID received from lobby:', gameData);
-                        return;
+                    const receivedData = JSON.parse(message.body);
+                    // Check if it's a single game object (not an array, has an id)
+                    if (receivedData && !Array.isArray(receivedData) && receivedData.id && receivedData.id !== 'null') {
+                        const gameData = receivedData;
+                        console.log('Lobby message is a single game object, ID:', gameData.id, 'Updating game state.');
+                        
+                        setGameState(prev => ({
+                            // Preserve essential non-game-specific parts if any from prev, though gameState is mostly game-specific
+                            // For a new game from lobby, we primarily use gameData and reset others.
+                            id: gameData.id,
+                            status: gameData.status,
+                            players: gameData.players || [],
+                            turnSequence: gameData.turnSequence || [],
+                            currentPlayer: gameData.currentPlayer || null,
+                            currentPlayerId: gameData.currentPlayerId || null,
+                            currentBid: gameData.currentBid || null,
+                            round: gameData.round || 0,
+
+                            // Reset local frontend states related to a specific game instance
+                            dice: [],
+                            error: null,
+                            hasRolled: false,
+                            challengeResult: null,
+                            showChallengeResult: false,
+                            gameEndData: null, // Clear previous game end data
+                            showGameEndModal: false, // Hide previous game end modal
+                        }));
+                        // PlayerId must be cleared because this is a new game context from the lobby.
+                        // The user has not yet "joined" this specific new game instance.
+                        setPlayerId(null); 
+
+                    } else if (Array.isArray(receivedData)) {
+                        console.log('Lobby message is a list of games. Currently not handling display of game lists.');
+                        // Placeholder for future functionality: setAvailableGames(receivedData);
+                    } else {
+                        console.log('Lobby message is not a recognized game object or list:', receivedData);
                     }
-                    console.log('Setting game state from lobby with valid ID:', gameData.id);
-                    setGameState(gameData);
                 } catch (error) {
                     console.error('Error processing game data from lobby:', error);
                 }
@@ -79,64 +214,100 @@ const GameBoard = () => {
         });
 
         return () => {
-            if (client) {
+            if (client && client.connected) {
+                console.log("Disconnecting STOMP client.");
                 client.disconnect();
             }
+            setStompClient(null);
         };
-    }, []); // Empty dependency array for STOMP setup
+    }, []); // Runs once to establish STOMP connection and lobby subscription
 
-    useEffect(() => { // Track original players when game starts
-        if (gameState.status === 'PLAYING' && allOriginalPlayers.length === 0 && gameState.players?.length > 0) {
-            const originalPlayers = gameState.players.map(p => ({
-                id: p.id,
-                username: p.username,
-                currentGameChallenges: 0,
-                currentGameSuccessfulChallenges: 0,
-                currentGameEliminatedPlayers: 0
-            }));
-            setAllOriginalPlayers(originalPlayers);
-            console.log('Stored original players:', originalPlayers);
-        }
-    }, [gameState.status, gameState.players, allOriginalPlayers.length]);
+    useEffect(() => { // Game-specific STOMP subscriptions
+        let stateSubscription;
+        let diceSubscription;
+        let challengeSubscription;
+        let resultsSubscription;
 
-    useEffect(() => { // Check for game end
-        if (gameState.status === 'FINISHED' && !showGameEndResults && !isSpectating) {
-            console.log('Game finished, showing end results');
-            setShowGameEndResults(true);
+        if (stompClient && stompClient.connected && gameState.id && user && user.id) {
+            console.log(`Setting up subscriptions for game ${gameState.id} and user ${user.id}`);
+
+            stateSubscription = stompClient.subscribe(`/topic/game/${gameState.id}/state`, (message) => {
+                console.log('Game state update received:', message.body);
+                const updatedGameData = JSON.parse(message.body);
+                
+                if (updatedGameData.status === 'ERROR') {
+                    setError(updatedGameData.errorMessage || 'An unknown error occurred.');
+                    // Do not wipe the game state if it's just an action error.
+                    // The game should continue with the previous valid state.
+                    // We might want to update specific fields if necessary, e.g., just the status.
+                    setGameState(prev => ({ ...prev, status: updatedGameData.status })); 
+                    return; // Stop further processing for this error message
+                }
+
+                setError(null); // Clear previous errors if this is a valid state update
+                const previousRound = gameState.round; 
+                setGameState(prev => ({ ...prev, ...updatedGameData }));
+
+                if (updatedGameData.currentBid === null && previousRound < updatedGameData.round) {
+                    console.log("New round detected, resetting bid input.");
+                    setBidInput({ quantity: 1, value: 1 });
+                }
+                if (updatedGameData.round > previousRound && user.id) { // Ensure user.id is available
+                    console.log("Round changed, refreshing dice state for player", user.id);
+                    getDiceState(updatedGameData.id, user.id);
+                }
+            });
+
+            diceSubscription = stompClient.subscribe(`/user/${user.id}/queue/game/${gameState.id}/dice`, (message) => {
+                console.log('Dice update received:', message.body);
+                const diceData = JSON.parse(message.body);
+                setDice(diceData.values || []); 
+            });
+
+            challengeSubscription = stompClient.subscribe(`/topic/game/${gameState.id}/challenge`, (message) => {
+                console.log('Challenge result received:', message.body);
+                const resultData = JSON.parse(message.body);
+                setChallengeResult(resultData);
+                setShowChallengeResult(true);
+                 // Auto-close challenge modal after some time
+                if (challengeResultTimerRef.current) {
+                    clearTimeout(challengeResultTimerRef.current);
+                }
+                challengeResultTimerRef.current = setTimeout(() => {
+                    handleChallengeResultClose(); // Use the unified close handler
+                }, 8000); // 8 seconds
+            });
+
+            resultsSubscription = stompClient.subscribe(`/topic/game/${gameState.id}/results`, (message) => {
+                console.log('Game end results received:', message.body);
+                const endData = JSON.parse(message.body);
+                setGameEndData(endData);
+                setShowGameEndModal(true);
+            });
+
+            // Cleanup function for this effect
+            return () => {
+                console.log(`Attempting to clean up subscriptions for game ${gameState.id || 'unknown'}`);
+                if (stateSubscription) stateSubscription.unsubscribe();
+                if (diceSubscription) diceSubscription.unsubscribe();
+                if (challengeSubscription) challengeSubscription.unsubscribe();
+                if (resultsSubscription) resultsSubscription.unsubscribe();
+            };
         }
-    }, [gameState.status, showGameEndResults, isSpectating]);
+    }, [stompClient, gameState.id, user]); // user dependency is important here for user.id
+
+    useEffect(() => { // Check for game end based on gameEndData received via WebSocket
+        if (gameEndData && !showGameEndModal) {
+            console.log('Game finished, received end results, showing modal.');
+            setShowGameEndModal(true);
+        }
+    }, [gameEndData, showGameEndModal]);
 
     // All helper functions grouped here
-    const trackChallengeActivity = (challengerId, isSuccessful, losingPlayerId) => {
-        setAllOriginalPlayers(prevPlayers => 
-            prevPlayers.map(player => {
-                if (String(player.id) === String(challengerId)) {
-                    const playerLosing = gameState.players?.find(p => String(p.id) === String(losingPlayerId));
-                    const willBeEliminated = playerLosing && playerLosing.dice && playerLosing.dice.length <= 1;
-                    return {
-                        ...player,
-                        currentGameChallenges: player.currentGameChallenges + 1,
-                        currentGameSuccessfulChallenges: isSuccessful ? 
-                            player.currentGameSuccessfulChallenges + 1 : 
-                            player.currentGameSuccessfulChallenges,
-                        currentGameEliminatedPlayers: isSuccessful && willBeEliminated ?
-                            player.currentGameEliminatedPlayers + 1 : 
-                            player.currentGameEliminatedPlayers
-                    };
-                }
-                return player;
-            })
-        );
-    };
-
-    const handleSpectate = () => {
-        setIsSpectating(true);
-        setShowGameEndResults(false); // Close results modal if choosing to spectate
-    };
-
-    const handleGameEndResultsClose = () => { // This function might be passed to GameEndResults if a close button independent of navigation is needed
-        setShowGameEndResults(false);
-        // Decide what happens next, e.g., navigate to home or allow spectating
+    const handleGameEndModalClose = () => {
+        setShowGameEndModal(false);
+        setGameEndData(null);
+        console.log("Game end modal closed by user. Should navigate home/lobby.");
     };
     
     const createGame = () => {
@@ -180,21 +351,6 @@ const GameBoard = () => {
                 const challengeData = JSON.parse(message.body);
                 setChallengeResult(challengeData);
                 setShowChallengeResult(true);
-                trackChallengeActivity(
-                    challengeData.challengerId,
-                    challengeData.challengeSuccessful,
-                    challengeData.losingPlayerId
-                );
-                
-                if (challengeResultTimerRef.current) clearTimeout(challengeResultTimerRef.current);
-                challengeResultTimerRef.current = setTimeout(() => {
-                    setShowChallengeResult(false); 
-                    if (challengeData && !challengeData.gameFinished) {
-                        startNextRound(); 
-                    }
-                    setChallengeResult(null); 
-                    challengeResultTimerRef.current = null;
-                }, 8000);
             });
 
             // Subscribe to public game state updates
@@ -314,6 +470,34 @@ const GameBoard = () => {
         }
     };
     
+    const isMatchingDie = (dieValue, bidValue) => {
+        if (bidValue === 1) {
+            return dieValue === 1;
+        }
+        return dieValue === bidValue || dieValue === 1;
+    };
+
+    const handleChallengeResultClose = () => {
+        if (challengeResultTimerRef.current) {
+            clearTimeout(challengeResultTimerRef.current);
+            challengeResultTimerRef.current = null;
+        }
+        setShowChallengeResult(false);
+        // Check if the game is finished from the challengeResult
+        // If not finished, then proceed to start the next round.
+        if (challengeResult && !challengeResult.gameFinished) {
+            startNextRound(); 
+        }
+        setChallengeResult(null); // Clear the result after handling
+    };
+
+    // Ensure playerId state is set correctly upon joining
+    useEffect(() => {
+        if (user && user.id) {
+            setPlayerId(String(user.id)); // Keep playerId as string if it's used for comparison with string IDs from backend
+        }
+    }, [user]);
+
     // Return JSX
     return (
         <div className="game-board">
@@ -322,73 +506,41 @@ const GameBoard = () => {
             {error && <div className="error-message">{error}</div>}
 
             {showChallengeResult && challengeResult && (
-                <div className="challenge-result-modal">
-                    <div className="challenge-result-content">
-                        <h2>Challenge Result</h2>
-                        <div className="challenge-summary">
-                            <p><strong>{challengeResult.challengerName}</strong> challenged <strong>{challengeResult.bidPlayerName}</strong>'s bid:</p>
-                            <p className="bid-info">
-                                <strong>{challengeResult.challengedBid.quantity} × {challengeResult.challengedBid.value}'s</strong>
-                            </p>
-                        </div>
-                        
-                        <div className="revealed-dice">
-                            <h3>All Dice Revealed:</h3>
-                            {Object.entries(challengeResult.allPlayerDice).map(([pId, diceVals]) => {
-                                const playerDetails = allOriginalPlayers.find(p => String(p.id) === String(pId)) || gameState.players?.find(p => String(p.id) === String(pId));
+                <div className="modal-overlay">
+                    <div className="modal-content challenge-result-modal">
+                        <h3>Challenge Result</h3>
+                        <p><strong>Challenger:</strong> {challengeResult.challengerName}</p>
+                        <p><strong>Player Challenged:</strong> {challengeResult.bidPlayerName}</p>
+                        <p><strong>Their Bid:</strong> {challengeResult.bid ? `${challengeResult.bid.quantity} x ` : 'Bid Info N/A'} {challengeResult.bid && <DiceFace value={challengeResult.bid.value} />}</p>
+                        <hr />
+                        <p><strong>All Dice Revealed:</strong></p>
+                        <div className="all-dice-reveal">
+                            {Object.entries(challengeResult.allPlayerDiceMap || {}).map(([pId, pDice]) => {
+                                const playerDetails = gameState.players.find(pl => String(pl.id) === pId);
                                 return (
                                     <div key={pId} className="player-dice-reveal">
-                                        <div className="player-name">{playerDetails?.username || `Player ${pId}`}:</div>
-                                        <div className="dice-values">
-                                            {diceVals.map((value, index) => {
-                                                const isMatchingDie = (
-                                                    value === challengeResult.challengedBid.value || 
-                                                    (value === 1 && challengeResult.challengedBid.value !== 1)
-                                                );
-                                                return (
-                                                    <span key={`${pId}-die-${index}`} className={`die ${isMatchingDie ? 'matching' : ''}`}>
-                                                        {value}
-                                                    </span>
-                                                );
-                                            })}
-                                        </div>
+                                        <strong>{playerDetails ? playerDetails.username : `Player ${pId}`}: </strong>
+                                        {pDice.map((dieValue, index) => {
+                                            const isMatch = challengeResult.bid ? isMatchingDie(dieValue, challengeResult.bid.value) : false;
+                                            return (
+                                                <DiceFace key={index} value={dieValue} isHighlighted={isMatch} />
+                                            );
+                                        })}
                                     </div>
                                 );
                             })}
                         </div>
-                        
-                        <div className="challenge-outcome">
-                            <p className="actual-count">
-                                Actual count of {challengeResult.challengedBid.value}'s
-                                {challengeResult.challengedBid.value !== 1 ? " (including 1's as wild)" : " (1's only, no wilds)"}: 
-                                <strong>{challengeResult.actualCount}</strong>
-                            </p>
-                            <p className={`result ${challengeResult.challengeSuccessful ? 'success' : 'failure'}`}>
-                                {challengeResult.challengeSuccessful ? 
-                                    `✅ Challenge SUCCESSFUL! ${challengeResult.losingPlayerName} loses a die.` : 
-                                    `❌ Challenge FAILED! ${challengeResult.losingPlayerName} loses a die.`
-                                }
-                            </p>
-                            {challengeResult.gameFinished && (
-                                <p className="game-winner">
-                                    🏆 <strong>{challengeResult.winnerName}</strong> wins the game!
-                                </p>
-                            )}
-                        </div>
-                        
-                        <button 
-                            className="close-challenge-result"
-                            onClick={() => {
-                                clearTimeout(challengeResultTimerRef.current);
-                                setShowChallengeResult(false);
-                                if (challengeResult && !challengeResult.gameFinished) {
-                                    startNextRound(); 
-                                }
-                                setChallengeResult(null);
-                            }}
-                        >
-                            Close
-                        </button>
+                        <p><strong>Actual Count of {challengeResult.bid ? <DiceFace value={challengeResult.bid.value} /> : 'dice'}:</strong> {challengeResult.actualCount}</p>
+                        <hr />
+                        {challengeResult.challengeSuccessful ? (
+                            <p className="success-message"><strong>Challenge SUCCEEDED!</strong> {challengeResult.losingPlayerName} loses a die.</p>
+                        ) : (
+                            <p className="failure-message"><strong>Challenge FAILED!</strong> {challengeResult.losingPlayerName} loses a die.</p>
+                        )}
+                        {challengeResult.gameFinished && challengeResult.winnerName && (
+                            <p className="winner-message"><strong>GAME OVER! Winner is {challengeResult.winnerName}!</strong></p>
+                        )}
+                        <button onClick={handleChallengeResultClose}>OK</button>
                     </div>
                 </div>
             )}
@@ -409,7 +561,7 @@ const GameBoard = () => {
                 </div>
             )}
 
-            {gameState.id && playerId && !isSpectating && ( // Don't show game controls if spectating
+            {gameState.id && playerId && (
                 <div className="game-info">
                     <h2>Game ID: {gameState.id} (Round: {gameState.round || 0})</h2>
                     <div className="players">
@@ -459,7 +611,25 @@ const GameBoard = () => {
                             <h3>{user?.username}'s Dice:</h3>
                             <div className="dice-container">
                                 <div className="dice-list">
-                                    {dice.map((value, index) => <span key={`player-die-${index}-${value}`} className="die">{value}</span>)}
+                                    {dice.map((value, index) => {
+                                        const diceStyles = getDiceStyles(equippedDiceId);
+                                        return (
+                                            <span 
+                                                key={`player-die-${index}-${value}`} 
+                                                className="die custom-dice"
+                                                style={{
+                                                    background: diceStyles.background,
+                                                    border: `2px solid ${diceStyles.border}`,
+                                                    color: diceStyles.color,
+                                                    boxShadow: `0 4px 8px ${diceStyles.shadow}`,
+                                                    fontWeight: 'bold',
+                                                    textShadow: diceStyles.color === '#ffffff' ? '1px 1px 2px rgba(0,0,0,0.3)' : 'none'
+                                                }}
+                                            >
+                                                {value}
+                                            </span>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>
@@ -502,33 +672,12 @@ const GameBoard = () => {
                     )}
                 </div>
             )}
-            
-            {isSpectating && gameState.id && (
-                 <div className="spectating-info">
-                    <h2>Spectating Game ID: {gameState.id} (Round: {gameState.round || 0})</h2>
-                     {/* Simplified spectator view or reuse parts of game-info */}
-                     <p>Current turn: Player {gameState.currentPlayerId} ({gameState.turnSequence?.find(p=>String(p.id) === String(gameState.currentPlayerId))?.username})</p>
-                     {gameState.currentBid && <p>Current Bid: {gameState.currentBid.quantity} x {gameState.currentBid.value}'s</p>}
-                     <h3>Players:</h3>
-                        <ul>
-                            {(gameState.players || []).map(player => (
-                                <li key={player.id}>
-                                   {player.username} ({player.dice?.length || 0} dice)
-                                   {String(gameState.currentPlayerId) === String(player.id) && " 🎲"}
-                                </li>
-                            ))}
-                        </ul>
-                     <button onClick={() => setIsSpectating(false)}>Stop Spectating & Return to Game End Screen</button>
-                 </div>
-            )}
 
-            {showGameEndResults && gameState.id && (
-                <GameEndResults
-                    gameId={gameState.id}
-                    gameState={gameState}
-                    allOriginalPlayers={allOriginalPlayers} // This now contains the activity counts
-                    onSpectate={handleSpectate}
-                    onClose={handleGameEndResultsClose} 
+            {showGameEndModal && gameEndData && (
+                <GameEndResultsModal 
+                    results={gameEndData} 
+                    onClose={handleGameEndModalClose} 
+                    currentUser={user}
                 />
             )}
         </div>
